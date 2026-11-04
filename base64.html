@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 编解码 - 元强工具箱</title>
+<meta name="description" content="在线Base64编码解码工具：文本转Base64、Base64转文本，支持中文UTF-8，纯前端本地处理不上传。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f8fa; color: #24292f; line-height: 1.6;
+    padding: 20px; min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card {
+    background: #fff; border: 1px solid #d0d7de; border-radius: 8px;
+    padding: 16px;
+  }
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+  }
+  button {
+    padding: 7px 14px; background: #1f883d; color: #fff;
+    border: none; border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  button:hover { background: #1a7f37; }
+  button.secondary {
+    background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de;
+  }
+  button.secondary:hover { background: #eef1f4; }
+  button.danger { background: #cf222e; }
+  button.danger:hover { background: #a40e26; }
+  .editor-area {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 720px) {
+    .editor-area { grid-template-columns: 1fr; }
+  }
+  textarea {
+    width: 100%; height: 300px;
+    padding: 12px; border: 1px solid #d0d7de; border-radius: 6px;
+    font-family: "SF Mono", Consolas, Monaco, "Courier New", monospace;
+    font-size: 13px; line-height: 1.5;
+    resize: vertical; outline: none;
+  }
+  textarea:focus { border-color: #0969da; }
+  #output { background: #f6f8fa; }
+  .label {
+    font-size: 12px; color: #57606a; margin-bottom: 4px; font-weight: 600;
+  }
+  .msg {
+    margin-top: 10px; padding: 10px 12px; border-radius: 6px;
+    font-size: 13px; display: none;
+  }
+  .msg.show { display: block; }
+  .error { background: #ffebe9; color: #cf222e; }
+  .ok { background: #dafbe1; color: #1a7f37; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1># Base64 编解码</h1>
+
+  <div class="card">
+    <div class="toolbar">
+      <button onclick="encode()">编码（文本 → Base64）</button>
+      <button onclick="decode()">解码（Base64 → 文本）</button>
+      <button onclick="copyResult()">复制结果</button>
+      <button onclick="swap()" class="secondary">交换 ⇅</button>
+      <button onclick="clearAll()" class="danger">清空</button>
+    </div>
+
+    <div class="editor-area">
+      <div>
+        <div class="label">输入</div>
+        <textarea id="input" placeholder="输入文本或 Base64 字符串..."></textarea>
+      </div>
+      <div>
+        <div class="label">输出</div>
+        <textarea id="output" readonly placeholder="结果显示在这里..."></textarea>
+      </div>
+    </div>
+
+    <div id="msg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function showMsg(text, type) {
+  const m = $('msg');
+  m.textContent = text;
+  m.className = 'msg show ' + type;
+}
+
+// UTF-8 安全的 Base64 编码
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+
+// UTF-8 安全的 Base64 解码
+function base64ToUtf8(b64) {
+  const bin = atob(b64.trim());
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function encode() {
+  const text = $('input').value;
+  if (!text) return showMsg('请输入要编码的文本', 'error');
+  try {
+    $('output').value = utf8ToBase64(text);
+    showMsg('✅ 编码成功', 'ok');
+  } catch (e) {
+    showMsg('❌ 编码失败：' + e.message, 'error');
+  }
+}
+
+function decode() {
+  const b64 = $('input').value.trim();
+  if (!b64) return showMsg('请输入要解码的 Base64 字符串', 'error');
+  try {
+    $('output').value = base64ToUtf8(b64);
+    showMsg('✅ 解码成功', 'ok');
+  } catch (e) {
+    showMsg('❌ 解码失败：不是有效的 Base64 字符串', 'error');
+  }
+}
+
+function copyResult() {
+  const v = $('output').value;
+  if (!v) return showMsg('没有可复制的内容', 'error');
+  navigator.clipboard.writeText(v).then(() => showMsg('✅ 已复制到剪贴板', 'ok'));
+}
+
+function swap() {
+  const a = $('input').value;
+  $('input').value = $('output').value;
+  $('output').value = a;
+}
+
+function clearAll() {
+  $('input').value = '';
+  $('output').value = '';
+  $('msg').className = 'msg';
+}
+</script>
+</body>
+</html>
