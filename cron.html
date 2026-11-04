@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cron 表达式 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 700px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: #57606a; margin-bottom: 4px; }
+  input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 15px; outline: none; }
+  input[type=text]:focus { border-color: #0969da; }
+  button { padding: 10px 20px; background: #1f883d; color: #fff; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+  button:hover { background: #1a7f37; }
+  .desc-box { padding: 14px; background: #f6f8fa; border-radius: 6px; margin-top: 14px; font-size: 14px; }
+  .desc-box .label { font-size: 12px; color: #57606a; margin-bottom: 4px; }
+  .preset { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .preset button { background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; font-size: 12px; padding: 5px 10px; }
+  .preset button:hover { background: #eef1f4; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #d0d7de; }
+  th { color: #57606a; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>⌛ Cron 表达式</h1>
+
+  <div class="card">
+    <div class="field">
+      <label>Cron 表达式（分 时 日 月 周）</label>
+      <input type="text" id="cron" value="30 2 * * *">
+    </div>
+    <button onclick="parse()">解析</button>
+    <div class="preset">
+      <button onclick="setCron('* * * * *')">每分钟</button>
+      <button onclick="setCron('0 * * * *')">每小时</button>
+      <button onclick="setCron('0 0 * * *')">每天零点</button>
+      <button onclick="setCron('30 2 * * *')">每天凌晨 2:30</button>
+      <button onclick="setCron('0 9 * * 1-5')">工作日早 9 点</button>
+      <button onclick="setCron('0 0 1 * *')">每月 1 号零点</button>
+    </div>
+    <div class="desc-box" id="desc" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">字段说明</div>
+    <table>
+      <tr><th>字段</th><th>允许值</th><th>允许符号</th></tr>
+      <tr><td>分钟</td><td>0-59</td><td>, - * /</td></tr>
+      <tr><td>小时</td><td>0-23</td><td>, - * /</td></tr>
+      <tr><td>日期</td><td>1-31</td><td>, - * / ? L W</td></tr>
+      <tr><td>月份</td><td>1-12</td><td>, - * /</td></tr>
+      <tr><td>星期</td><td>0-7（0和7都是周日）</td><td>, - * / ? L #</td></tr>
+    </table>
+  </div>
+</div>
+<script>
+function setCron(v) { document.getElementById('cron').value = v; parse(); }
+function parse() {
+  const parts = document.getElementById('cron').value.trim().split(/\s+/);
+  if (parts.length !== 5) { alert('Cron 表达式必须是 5 段：分 时 日 月 周'); return; }
+  const [min, hour, day, month, week] = parts;
+  let text = describe(min, '分钟') + '，' + describe(hour, '小时') + '，' + describeDay(day, week);
+  const d = document.getElementById('desc');
+  d.style.display = 'block';
+  d.innerHTML = '<div class="label">含义</div>' + text;
+}
+function describe(v, unit) {
+  if (v === '*') return '每' + unit;
+  if (v.startsWith('*/')) return '每 ' + v.slice(2) + ' ' + unit;
+  if (v.includes(',')) return unit + '为 ' + v;
+  if (v.includes('-')) return unit + '从 ' + v.split('-')[0] + ' 到 ' + v.split('-')[1];
+  return unit + '为 ' + v;
+}
+function describeDay(day, week) {
+  let s = '';
+  if (day !== '*') s += '在 ' + day + ' 号';
+  if (week !== '*') {
+    const names = ['周日','周一','周二','周三','周四','周五','周六'];
+    if (week.includes('-')) s += (day !== '*' ? ' 且 ' : '') + '星期' + week.split('-').map(n => names[+n]).join(' 到 ');
+    else s += (day !== '*' ? ' 且 ' : '') + names[+week];
+  }
+  return s || '每天';
+}
+parse();
+</script>
+</body>
+</html>
