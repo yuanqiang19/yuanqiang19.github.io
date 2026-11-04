@@ -1,22 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>运维工具箱</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元强工具箱 - 免费在线实用工具</title>
+<meta name="description" content="元强工具箱：免费、简洁、无广告的在线实用工具集合，包含IP查询、时间戳转换、JSON格式化、Base64编解码等开发者与日常工具。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f8fa;
+    color: #24292f;
+    line-height: 1.6;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  header { text-align: center; padding: 40px 0 24px; }
+  header h1 { font-size: 28px; margin-bottom: 8px; }
+  header p { color: #57606a; font-size: 14px; }
+  .search-box { max-width: 480px; margin: 20px auto 30px; }
+  .search-box input {
+    width: 100%; padding: 10px 16px;
+    border: 1px solid #d0d7de; border-radius: 8px;
+    font-size: 15px; outline: none; background: #fff;
+  }
+  .search-box input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.2); }
+  .category { margin-bottom: 28px; }
+  .category h2 {
+    font-size: 14px; color: #57606a;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 1px solid #d0d7de;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+  }
+  .tool-card {
+    display: block; background: #fff;
+    border: 1px solid #d0d7de; border-radius: 8px;
+    padding: 14px; text-decoration: none; color: #24292f;
+    transition: all 0.15s;
+  }
+  .tool-card:hover {
+    border-color: #0969da;
+    box-shadow: 0 2px 8px rgba(9,105,218,0.1);
+    transform: translateY(-1px);
+  }
+  .tool-card .icon { font-size: 22px; margin-bottom: 6px; }
+  .tool-card .name { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .tool-card .desc { font-size: 12px; color: #57606a; }
+  .coming-soon { opacity: 0.45; cursor: default; }
+  .coming-soon:hover { border-color: #d0d7de; box-shadow: none; transform: none; }
+  footer { text-align: center; padding: 30px 0 10px; color: #8b949e; font-size: 12px; }
+  footer a { color: #57606a; text-decoration: none; }
+</style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <h1>🧰 元强工具箱</h1>
+    <p>免费 · 简洁 · 无广告的在线实用工具集合</p>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="搜索工具..." oninput="filterTools()">
+    </div>
+  </header>
 
-<h1>运维工具箱</h1>
-<p>vSphere / 网络 / Linux 运维笔记和实用工具</p>
+  <div class="category">
+    <h2>🌐 网络工具</h2>
+    <div class="grid">
+      <a class="tool-card" href="ip.html">
+        <div class="icon">🌍</div>
+        <div class="name">IP 地址查询</div>
+        <div class="desc">查看当前访问 IP 与归属地</div>
+      </a>
+    </div>
+  </div>
 
-<h2>常用工具</h2>
-<p><a href="ip.html">📡 网络排障 - Ping / Traceroute 教程</a></p>
-<p>💾 TrueNAS 存储配置笔记</p>
-<p>🖥 vSphere 虚拟机管理</p>
-<p>🐧 Linux 常用命令速查</p>
+  <div class="category">
+    <h2>💻 开发者工具</h2>
+    <div class="grid">
+      <a class="tool-card" href="timestamp.html">
+        <div class="icon">⏰</div>
+        <div class="name">时间戳转换</div>
+        <div class="desc">Unix 时间戳与日期互转</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">{ }</div>
+        <div class="name">JSON 格式化</div>
+        <div class="desc">即将上线</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">#</div>
+        <div class="name">Base64 编解码</div>
+        <div class="desc">即将上线</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">%</div>
+        <div class="name">URL 编解码</div>
+        <div class="desc">即将上线</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">.*</div>
+        <div class="name">正则测试器</div>
+        <div class="desc">即将上线</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">⌛</div>
+        <div class="name">Cron 表达式</div>
+        <div class="desc">即将上线</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">☰</div>
+        <div class="name">Unicode 转换</div>
+        <div class="desc">即将上线</div>
+      </a>
+    </div>
+  </div>
 
-<h2>关于我</h2>
-<p>制造业IT运维，擅长vSphere虚拟化、TrueNAS存储、网络和Linux排障。</p>
+  <div class="category">
+    <h2>🧮 实用计算</h2>
+    <div class="grid">
+      <a class="tool-card coming-soon">
+        <div class="icon">📏</div>
+        <div class="name">单位换算</div>
+        <div class="desc">长度/重量/面积/温度</div>
+      </a>
+      <a class="tool-card coming-soon">
+        <div class="icon">🔥</div>
+        <div class="name">热量 / TDEE 计算</div>
+        <div class="desc">基础代谢与宏量营养素</div>
+      </a>
+    </div>
+  </div>
 
+  <div class="category">
+    <h2>🎮 游戏辅助</h2>
+    <div class="grid">
+      <a class="tool-card coming-soon">
+        <div class="icon">⚔️</div>
+        <div class="name">DNF 属强提升率</div>
+        <div class="desc">计算属强边际收益</div>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 yuanqiang19.github.io · <a href="https://github.com/yuanqiang19" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+</div>
+
+<script>
+function filterTools() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  document.querySelectorAll('.tool-card').forEach(card => {
+    card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
 </body>
 </html>
