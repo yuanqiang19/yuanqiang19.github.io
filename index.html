@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>元强工具箱 - 免费在线实用工具</title>
-<meta name="description" content="元强工具箱：免费、简洁、无广告的在线实用工具集合，包含IP查询、时间戳转换、JSON格式化、Base64编解码等开发者与日常工具。">
+<meta name="description" content="元强工具箱：免费、简洁、无广告的在线实用工具集合，包含IP查询、时间戳转换、JSON格式化、Base64/URL编解码、正则测试、Cron表达式、单位换算、热量计算等。">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -52,8 +52,6 @@
   .tool-card .icon { font-size: 22px; margin-bottom: 6px; }
   .tool-card .name { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
   .tool-card .desc { font-size: 12px; color: #57606a; }
-  .coming-soon { opacity: 0.45; cursor: default; }
-  .coming-soon:hover { border-color: #d0d7de; box-shadow: none; transform: none; }
   footer { text-align: center; padding: 30px 0 10px; color: #8b949e; font-size: 12px; }
   footer a { color: #57606a; text-decoration: none; }
 </style>
@@ -62,7 +60,7 @@
 <div class="container">
   <header>
     <h1>🧰 元强工具箱</h1>
-    <p>免费 · 简洁 · 无广告的在线实用工具集合</p>
+    <p>免费 · 简洁 · 无广告 · 纯本地处理不上传数据</p>
     <div class="search-box">
       <input type="text" id="search" placeholder="搜索工具..." oninput="filterTools()">
     </div>
@@ -102,20 +100,20 @@
         <div class="name">URL 编解码</div>
         <div class="desc">链接参数中文转义与还原</div>
       </a>
-      <a class="tool-card coming-soon">
+      <a class="tool-card" href="regex.html">
         <div class="icon">.*</div>
         <div class="name">正则测试器</div>
-        <div class="desc">即将上线</div>
+        <div class="desc">在线正则匹配高亮测试</div>
       </a>
-      <a class="tool-card coming-soon">
+      <a class="tool-card" href="cron.html">
         <div class="icon">⌛</div>
         <div class="name">Cron 表达式</div>
-        <div class="desc">即将上线</div>
+        <div class="desc">定时任务表达式解析</div>
       </a>
-      <a class="tool-card coming-soon">
+      <a class="tool-card" href="unicode.html">
         <div class="icon">☰</div>
         <div class="name">Unicode 转换</div>
-        <div class="desc">即将上线</div>
+        <div class="desc">文本与 \uXXXX 互转</div>
       </a>
     </div>
   </div>
@@ -123,15 +121,15 @@
   <div class="category">
     <h2>🧮 实用计算</h2>
     <div class="grid">
-      <a class="tool-card coming-soon">
+      <a class="tool-card" href="unit.html">
         <div class="icon">📏</div>
         <div class="name">单位换算</div>
-        <div class="desc">长度/重量/面积/温度</div>
+        <div class="desc">长度 / 重量 / 温度</div>
       </a>
-      <a class="tool-card coming-soon">
+      <a class="tool-card" href="tdee.html">
         <div class="icon">🔥</div>
         <div class="name">热量 / TDEE 计算</div>
-        <div class="desc">基础代谢与宏量营养素</div>
+        <div class="desc">基础代谢与每日总消耗</div>
       </a>
     </div>
   </div>
@@ -139,7 +137,7 @@
   <div class="category">
     <h2>🎮 游戏辅助</h2>
     <div class="grid">
-      <a class="tool-card coming-soon">
+      <a class="tool-card" href="dnf.html">
         <div class="icon">⚔️</div>
         <div class="name">DNF 属强提升率</div>
         <div class="desc">计算属强边际收益</div>
