@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正则测试器 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .row label { font-size: 13px; color: #57606a; align-self: center; }
+  input[type=text] { flex: 1; padding: 8px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 14px; outline: none; }
+  input[type=text]:focus { border-color: #0969da; }
+  input[type=checkbox] { margin-right: 4px; }
+  textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; resize: vertical; outline: none; }
+  textarea:focus { border-color: #0969da; }
+  .label { font-size: 12px; color: #57606a; margin-bottom: 4px; font-weight: 600; }
+  #result { margin-top: 12px; padding: 12px; background: #f6f8fa; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; min-height: 40px; white-space: pre-wrap; word-break: break-all; }
+  #result .hit { background: #fff3a3; padding: 1px 2px; border-radius: 2px; }
+  .count { font-size: 13px; color: #1a7f37; margin-top: 8px; }
+  .error { color: #cf222e; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>.* 正则测试器</h1>
+
+  <div class="card">
+    <div class="row">
+      <label>正则：/</label>
+      <input type="text" id="pattern" placeholder="例如 \d+" value="\d+">
+      <label>/</label>
+      <label><input type="checkbox" id="flag_g" checked>g</label>
+      <label><input type="checkbox" id="flag_i">i</label>
+      <label><input type="checkbox" id="flag_m">m</label>
+    </div>
+    <div class="label">测试文本</div>
+    <textarea id="text" placeholder="输入要测试的文本..." oninput="test()">我的手机号是 13800138000，订单号 20261104，共 3 个数字。</textarea>
+    <div id="result"></div>
+    <div class="count" id="count"></div>
+  </div>
+</div>
+<script>
+function test() {
+  const pat = document.getElementById('pattern').value;
+  let flags = '';
+  if (document.getElementById('flag_g').checked) flags += 'g';
+  if (document.getElementById('flag_i').checked) flags += 'i';
+  if (document.getElementById('flag_m').checked) flags += 'm';
+  const text = document.getElementById('text').value;
+  const result = document.getElementById('result');
+  const count = document.getElementById('count');
+  try {
+    const re = new RegExp(pat, flags);
+    let html = '', n = 0, last = 0;
+    if (flags.includes('g')) {
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        html += escapeHtml(text.slice(last, m.index)) + '<span class="hit">' + escapeHtml(m[0]) + '</span>';
+        last = m.index + m[0].length;
+        n++;
+        if (m[0] === '') re.lastIndex++;
+      }
+      html += escapeHtml(text.slice(last));
+    } else {
+      const m = text.match(re);
+      if (m) {
+        html = escapeHtml(text.replace(re, '<span class="hit">' + m[0] + '</span>'));
+        n = 1;
+      } else {
+        html = escapeHtml(text);
+      }
+    }
+    result.innerHTML = html || '（无匹配）';
+    count.textContent = n > 0 ? `✅ 匹配到 ${n} 处` : '无匹配';
+    count.className = n > 0 ? 'count' : 'count error';
+  } catch (e) {
+    result.innerHTML = '<span class="error">正则错误：' + e.message + '</span>';
+    count.textContent = '';
+  }
+}
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+test();
+</script>
+</body>
+</html>
