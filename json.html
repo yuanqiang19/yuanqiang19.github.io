@@ -197,6 +197,7 @@ function loadFile(event) {
     $('input').value = e.target.result;
     clearMsgs();
     showOk('已加载文件：' + file.name);
+    format();
   };
   reader.readAsText(file);
   event.target.value = '';
