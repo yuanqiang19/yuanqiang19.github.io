@@ -79,6 +79,8 @@
       <button onclick="unescape()">反转义</button>
       <button onclick="copyResult()">复制结果</button>
       <button onclick="loadSample()" class="secondary">示例</button>
+      <button onclick="document.getElementById('fileInput').click()" class="secondary">📁 上传JSON文件</button>
+      <input type="file" id="fileInput" accept=".json,.txt" style="display:none" onchange="loadFile(event)">
       <button onclick="clearAll()" class="danger">清空</button>
     </div>
 
@@ -185,6 +187,19 @@ function copyResult() {
 function loadSample() {
   $('input').value = '{"name":"元强工具箱","version":"1.0","tools":["IP查询","时间戳","JSON"],"active":true,"author":null}';
   clearMsgs();
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    $('input').value = e.target.result;
+    clearMsgs();
+    showOk('已加载文件：' + file.name);
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 function clearAll() {
