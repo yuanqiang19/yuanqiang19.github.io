@@ -49,12 +49,8 @@
         <div class="ip" id="ip">-</div>
         <div class="copy" onclick="copyIP()">点此复制 IP</div>
       </div>
-      <div class="info-row"><span class="label">国家</span><span class="value" id="country">-</span></div>
-      <div class="info-row"><span class="label">地区</span><span class="value" id="region">-</span></div>
-      <div class="info-row"><span class="label">城市</span><span class="value" id="city">-</span></div>
+      <div class="info-row"><span class="label">归属地</span><span class="value" id="addr">-</span></div>
       <div class="info-row"><span class="label">运营商</span><span class="value" id="org">-</span></div>
-      <div class="info-row"><span class="label">坐标</span><span class="value" id="loc">-</span></div>
-      <div class="info-row"><span class="label">时区</span><span class="value" id="timezone">-</span></div>
     </div>
   </div>
 </div>
@@ -64,33 +60,39 @@ window.onload = query;
 
 function query() {
   const ip = document.getElementById('ipInput').value.trim();
-  const url = ip ? `https://ipapi.co/${ip}/json/` : 'https://ipapi.co/json/';
+  const loading = document.getElementById('loading');
+  const errBox = document.getElementById('error');
+  const result = document.getElementById('result');
 
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('result').classList.remove('show');
-  document.getElementById('error').classList.remove('show');
+  loading.style.display = 'block';
+  result.classList.remove('show');
+  errBox.classList.remove('show');
+
+  // 用太平洋电脑网的 API，国内访问稳定
+  const url = 'https://whois.pconline.com.cn/ipJson.jsp?json=true' + (ip ? '&ip=' + ip : '');
 
   fetch(url)
-    .then(r => r.json())
+    .then(r => r.arrayBuffer())
+    .then(buf => {
+      // 太平洋返回 GBK 编码，需要转码
+      const text = new TextDecoder('gbk').decode(buf);
+      // 去掉 JSONP 包装：ipJson({...});
+      const jsonStr = text.replace(/^ipJson\(/, '').replace(/\);?$/, '');
+      return JSON.parse(jsonStr);
+    })
     .then(data => {
-      if (data.error) throw new Error(data.reason || '查询失败');
-      document.getElementById('ip').textContent = data.ip;
-      document.getElementById('country').textContent = data.country_name || '-';
-      document.getElementById('region').textContent = data.region || '-';
-      document.getElementById('city').textContent = data.city || '-';
-      document.getElementById('org').textContent = data.org || data.asn || '-';
-      document.getElementById('loc').textContent = data.latitude && data.longitude
-        ? `${data.latitude}, ${data.longitude}` : '-';
-      document.getElementById('timezone').textContent = data.timezone || '-';
-      document.getElementById('result').classList.add('show');
+      if (data.err) throw new Error(data.err);
+      document.getElementById('ip').textContent = data.ip || ip || '未知';
+      document.getElementById('addr').textContent = data.addr || '-';
+      document.getElementById('org').textContent = data.isp || data.pro + data.city || '-';
+      result.classList.add('show');
     })
     .catch(err => {
-      const e = document.getElementById('error');
-      e.textContent = '查询失败：' + err.message + '（可能是 API 被限流，稍后重试）';
-      e.classList.add('show');
+      errBox.textContent = '查询失败：' + err.message;
+      errBox.classList.add('show');
     })
     .finally(() => {
-      document.getElementById('loading').style.display = 'none';
+      loading.style.display = 'none';
     });
 }
 
