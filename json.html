@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON 格式化 - 元强工具箱</title>
+<meta name="description" content="在线JSON格式化工具：美化压缩JSON、转义反转义、语法校验，支持中文不转义，纯前端本地处理数据不上传。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f6f8fa; color: #24292f; line-height: 1.6;
+    padding: 20px; min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card {
+    background: #fff; border: 1px solid #d0d7de; border-radius: 8px;
+    padding: 16px;
+  }
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+  }
+  button {
+    padding: 7px 14px; background: #1f883d; color: #fff;
+    border: none; border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  button:hover { background: #1a7f37; }
+  button.secondary {
+    background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de;
+  }
+  button.secondary:hover { background: #eef1f4; }
+  button.danger { background: #cf222e; }
+  button.danger:hover { background: #a40e26; }
+  .editor-area {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 720px) {
+    .editor-area { grid-template-columns: 1fr; }
+  }
+  textarea {
+    width: 100%; height: 420px;
+    padding: 12px; border: 1px solid #d0d7de; border-radius: 6px;
+    font-family: "SF Mono", Consolas, Monaco, "Courier New", monospace;
+    font-size: 13px; line-height: 1.5;
+    resize: vertical; outline: none;
+  }
+  textarea:focus { border-color: #0969da; }
+  #output { background: #f6f8fa; }
+  .label {
+    font-size: 12px; color: #57606a; margin-bottom: 4px; font-weight: 600;
+  }
+  .error {
+    margin-top: 10px; padding: 10px 12px; border-radius: 6px;
+    background: #ffebe9; color: #cf222e; font-size: 13px;
+    display: none;
+  }
+  .error.show { display: block; }
+  .ok {
+    margin-top: 10px; padding: 10px 12px; border-radius: 6px;
+    background: #dafbe1; color: #1a7f37; font-size: 13px;
+    display: none;
+  }
+  .ok.show { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>{ } JSON 格式化</h1>
+
+  <div class="card">
+    <div class="toolbar">
+      <button onclick="format()">格式化（美化）</button>
+      <button onclick="minify()">压缩</button>
+      <button onclick="escape()">转义为字符串</button>
+      <button onclick="unescape()">反转义</button>
+      <button onclick="copyResult()">复制结果</button>
+      <button onclick="loadSample()" class="secondary">示例</button>
+      <button onclick="clearAll()" class="danger">清空</button>
+    </div>
+
+    <div class="editor-area">
+      <div>
+        <div class="label">输入</div>
+        <textarea id="input" placeholder='在此粘贴 JSON，例如：{"name":"张三","age":30}'></textarea>
+      </div>
+      <div>
+        <div class="label">输出</div>
+        <textarea id="output" readonly placeholder="结果显示在这里..."></textarea>
+      </div>
+    </div>
+
+    <div id="error" class="error"></div>
+    <div id="ok" class="ok"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function showError(msg) {
+  const e = $('error');
+  e.textContent = '❌ ' + msg;
+  e.classList.add('show');
+  $('ok').classList.remove('show');
+}
+function showOk(msg) {
+  const o = $('ok');
+  o.textContent = '✅ ' + msg;
+  o.classList.add('show');
+  $('error').classList.remove('show');
+}
+function clearMsgs() {
+  $('error').classList.remove('show');
+  $('ok').classList.remove('show');
+}
+
+function format() {
+  const raw = $('input').value.trim();
+  if (!raw) return showError('请输入 JSON');
+  try {
+    const obj = JSON.parse(raw);
+    // 2空格缩进，中文不转义
+    $('output').value = JSON.stringify(obj, null, 2);
+    showOk('JSON 合法，已格式化');
+  } catch (err) {
+    showError('JSON 语法错误：' + err.message);
+  }
+}
+
+function minify() {
+  const raw = $('input').value.trim();
+  if (!raw) return showError('请输入 JSON');
+  try {
+    const obj = JSON.parse(raw);
+    $('output').value = JSON.stringify(obj);
+    showOk('已压缩为单行');
+  } catch (err) {
+    showError('JSON 语法错误：' + err.message);
+  }
+}
+
+function escape() {
+  const raw = $('input').value;
+  if (!raw) return showError('请输入内容');
+  // 把 JSON 字符串转义成可嵌入代码的字符串
+  $('output').value = JSON.stringify(raw);
+  showOk('已转义为字符串字面量');
+}
+
+function unescape() {
+  const raw = $('input').value.trim();
+  if (!raw) return showError('请输入内容');
+  try {
+    // 去掉外层引号后 parse
+    let s = raw;
+    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+      s = s.slice(1, -1);
+    }
+    // 用 JSON.parse 解码转义序列
+    const decoded = JSON.parse('"' + s.replace(/^"|"$/g, '') + '"');
+    // 如果本身就是个 JSON 对象，尝试美化
+    try {
+      const obj = JSON.parse(decoded);
+      $('output').value = JSON.stringify(obj, null, 2);
+    } catch (e) {
+      $('output').value = decoded;
+    }
+    showOk('已反转义');
+  } catch (err) {
+    showError('反转义失败：' + err.message);
+  }
+}
+
+function copyResult() {
+  const v = $('output').value;
+  if (!v) return showError('没有可复制的内容');
+  navigator.clipboard.writeText(v).then(() => showOk('已复制到剪贴板'));
+}
+
+function loadSample() {
+  $('input').value = '{"name":"元强工具箱","version":"1.0","tools":["IP查询","时间戳","JSON"],"active":true,"author":null}';
+  clearMsgs();
+}
+
+function clearAll() {
+  $('input').value = '';
+  $('output').value = '';
+  clearMsgs();
+}
+</script>
+</body>
+</html>
