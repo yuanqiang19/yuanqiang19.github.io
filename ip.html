@@ -43,40 +43,51 @@
     <div class="error" id="error"></div>
     <div class="result" id="result">
       <div class="ip-big"><div class="ip" id="ip">-</div></div>
-      <div class="info-row"><span class="label">国家</span><span class="value" id="country">-</span></div>
-      <div class="info-row"><span class="label">地区</span><span class="value" id="region">-</span></div>
-      <div class="info-row"><span class="label">城市</span><span class="value" id="city">-</span></div>
-      <div class="info-row"><span class="label">运营商</span><span class="value" id="org">-</span></div>
+      <div class="info-row"><span class="label">归属地</span><span class="value" id="addr">-</span></div>
     </div>
   </div>
 </div>
 <script>
+// JSONP 回调函数，太平洋 API 返回时自动调用
+window.ipJson = function(data) {
+  document.getElementById('loading').style.display = 'none';
+  if (!data || data.err) {
+    var e = document.getElementById('error');
+    e.textContent = '查询失败：' + (data && data.err ? data.err : '未知错误');
+    e.classList.add('show');
+    return;
+  }
+  document.getElementById('ip').textContent = data.ip;
+  document.getElementById('addr').textContent = data.addr || '-';
+  document.getElementById('result').classList.add('show');
+  // 清理 script 标签
+  if (window._ipScript) {
+    document.body.removeChild(window._ipScript);
+    window._ipScript = null;
+  }
+};
+
 function query() {
-  const ip = document.getElementById('ipInput').value.trim();
+  var ip = document.getElementById('ipInput').value.trim();
   document.getElementById('loading').style.display = 'block';
   document.getElementById('result').classList.remove('show');
   document.getElementById('error').classList.remove('show');
 
-  const url = ip ? 'https://ipapi.co/' + ip + '/json/' : 'https://ipapi.co/json/';
+  // 清理旧的 script
+  if (window._ipScript) document.body.removeChild(window._ipScript);
 
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) throw new Error(data.reason);
-      document.getElementById('ip').textContent = data.ip;
-      document.getElementById('country').textContent = data.country_name || '-';
-      document.getElementById('region').textContent = data.region || '-';
-      document.getElementById('city').textContent = data.city || '-';
-      document.getElementById('org').textContent = data.org || '-';
-      document.getElementById('result').classList.add('show');
-    })
-    .catch(err => {
-      const e = document.getElementById('error');
-      e.textContent = '查询失败：' + err.message;
-      e.classList.add('show');
-    })
-    .finally(() => document.getElementById('loading').style.display = 'none');
+  var script = document.createElement('script');
+  script.src = 'https://whois.pconline.com.cn/ipJson.jsp?json=true' + (ip ? '&ip=' + ip : '');
+  script.onerror = function() {
+    document.getElementById('loading').style.display = 'none';
+    var e = document.getElementById('error');
+    e.textContent = '查询失败：网络超时，请稍后重试';
+    e.classList.add('show');
+  };
+  document.body.appendChild(script);
+  window._ipScript = script;
 }
+
 window.onload = query;
 </script>
 </body>
