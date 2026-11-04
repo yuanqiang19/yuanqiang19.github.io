@@ -155,14 +155,15 @@ function unescape() {
   const raw = $('input').value.trim();
   if (!raw) return showError('请输入内容');
   try {
-    // 去掉外层引号后 parse
-    let s = raw;
-    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-      s = s.slice(1, -1);
+    let decoded;
+    // 如果输入本身就是带引号的字符串字面量，直接 parse
+    if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
+      decoded = JSON.parse(raw.replace(/^'|'$/g, '"'));
+    } else {
+      // 否则给它加上双引号再 parse，解码里面的转义序列
+      decoded = JSON.parse('"' + raw.replace(/"/g, '\\"') + '"');
     }
-    // 用 JSON.parse 解码转义序列
-    const decoded = JSON.parse('"' + s.replace(/^"|"$/g, '') + '"');
-    // 如果本身就是个 JSON 对象，尝试美化
+    // 如果解码后是合法 JSON 对象，顺便美化
     try {
       const obj = JSON.parse(decoded);
       $('output').value = JSON.stringify(obj, null, 2);
@@ -171,7 +172,7 @@ function unescape() {
     }
     showOk('已反转义');
   } catch (err) {
-    showError('反转义失败：' + err.message);
+    showError('反转义失败：输入内容不是有效的转义字符串');
   }
 }
 
