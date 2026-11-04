@@ -11,87 +11,146 @@
   .topbar { margin-bottom: 20px; }
   .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
   h1 { font-size: 22px; margin-bottom: 20px; }
+  h2 { font-size: 16px; margin: 20px 0 10px; }
   .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-  .row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .row label { font-size: 13px; color: #57606a; align-self: center; }
+  .row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+  .row label { font-size: 13px; color: #57606a; }
   input[type=text] { flex: 1; padding: 8px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 14px; outline: none; }
   input[type=text]:focus { border-color: #0969da; }
   input[type=checkbox] { margin-right: 4px; }
-  textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; resize: vertical; outline: none; }
+  textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; resize: vertical; outline: none; }
   textarea:focus { border-color: #0969da; }
   .label { font-size: 12px; color: #57606a; margin-bottom: 4px; font-weight: 600; }
   #result { margin-top: 12px; padding: 12px; background: #f6f8fa; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; min-height: 40px; white-space: pre-wrap; word-break: break-all; }
   #result .hit { background: #fff3a3; padding: 1px 2px; border-radius: 2px; }
   .count { font-size: 13px; color: #1a7f37; margin-top: 8px; }
   .error { color: #cf222e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid #d0d7de; text-align: left; }
+  th { color: #57606a; font-weight: 600; background: #f6f8fa; }
+  td code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px; }
+  .tip { font-size: 13px; color: #57606a; margin-top: 8px; }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
-  <h1>.* 正则测试器</h1>
+  <h1>正则测试器</h1>
 
   <div class="card">
     <div class="row">
       <label>正则：/</label>
-      <input type="text" id="pattern" placeholder="例如 \d+" value="\d+">
+      <input type="text" id="pattern" placeholder="例如 \d+" value="\d+" oninput="test()">
       <label>/</label>
-      <label><input type="checkbox" id="flag_g" checked>g</label>
-      <label><input type="checkbox" id="flag_i">i</label>
-      <label><input type="checkbox" id="flag_m">m</label>
+      <label><input type="checkbox" id="flag_g" checked onchange="test()">g</label>
+      <label><input type="checkbox" id="flag_i" onchange="test()">i</label>
+      <label><input type="checkbox" id="flag_m" onchange="test()">m</label>
     </div>
     <div class="label">测试文本</div>
     <textarea id="text" placeholder="输入要测试的文本..." oninput="test()">我的手机号是 13800138000，订单号 20261104，共 3 个数字。</textarea>
     <div id="result"></div>
     <div class="count" id="count"></div>
   </div>
+
+  <div class="card">
+    <h2>📖 常用正则速查</h2>
+    <table>
+      <tr><th>你想匹配什么</th><th>正则表达式</th><th>点击填入</th></tr>
+      <tr><td>手机号</td><td><code>1[3-9]\d{9}</code></td><td><a href="#" onclick="fill('1[3-9]\\d{9}');return false;">填入</a></td></tr>
+      <tr><td>邮箱</td><td><code>\w+@\w+\.\w+</code></td><td><a href="#" onclick="fill('\\w+@\\w+\\.\\w+');return false;">填入</a></td></tr>
+      <tr><td>IP 地址</td><td><code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}</code></td><td><a href="#" onclick="fill('\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}');return false;">填入</a></td></tr>
+      <tr><td>身份证号</td><td><code>\d{17}[\dXx]</code></td><td><a href="#" onclick="fill('\\d{17}[\\dXx]');return false;">填入</a></td></tr>
+      <tr><td>日期（2026-11-04）</td><td><code>\d{4}-\d{2}-\d{2}</code></td><td><a href="#" onclick="fill('\\d{4}-\\d{2}-\\d{2}');return false;">填入</a></td></tr>
+      <tr><td>网址</td><td><code>https?://\S+</code></td><td><a href="#" onclick="fill('https?://\\S+');return false;">填入</a></td></tr>
+      <tr><td>所有数字</td><td><code>\d+</code></td><td><a href="#" onclick="fill('\\d+');return false;">填入</a></td></tr>
+      <tr><td>所有英文单词</td><td><code>[a-zA-Z]+</code></td><td><a href="#" onclick="fill('[a-zA-Z]+');return false;">填入</a></td></tr>
+      <tr><td>中文汉字</td><td><code>[\u4e00-\u9fa5]+</code></td><td><a href="#" onclick="fill('[\\u4e00-\\u9fa5]+');return false;">填入</a></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>🔧 语法速查</h2>
+    <table>
+      <tr><th>符号</th><th>含义</th><th>例子</th></tr>
+      <tr><td><code>\d</code></td><td>一个数字（0-9）</td><td><code>\d\d\d</code> 匹配 123</td></tr>
+      <tr><td><code>\w</code></td><td>一个字母/数字/下划线</td><td><code>\w+</code> 匹配 abc123</td></tr>
+      <tr><td><code>\s</code></td><td>一个空白字符（空格/制表符）</td><td><code>a\sb</code> 匹配 "a b"</td></tr>
+      <tr><td><code>.</code></td><td>任意一个字符（除换行）</td><td><code>a.c</code> 匹配 abc、a1c</td></tr>
+      <tr><td><code>+</code></td><td>前面的字符出现 1 次或多次</td><td><code>\d+</code> 匹配 1、123、123456</td></tr>
+      <tr><td><code>*</code></td><td>前面的字符出现 0 次或多次</td><td><code>ab*c</code> 匹配 ac、abc、abbc</td></tr>
+      <tr><td><code>?</code></td><td>前面的字符出现 0 次或 1 次</td><td><code>colou?r</code> 匹配 color、colour</td></tr>
+      <tr><td><code>{n}</code></td><td>前面的字符恰好出现 n 次</td><td><code>\d{11}</code> 匹配 11 位数字</td></tr>
+      <tr><td><code>{n,}</code></td><td>前面的字符至少出现 n 次</td><td><code>\d{6,}</code> 匹配 6 位以上数字</td></tr>
+      <tr><td><code>{n,m}</code></td><td>前面的字符出现 n 到 m 次</td><td><code>\d{3,5}</code> 匹配 3-5 位数字</td></tr>
+      <tr><td><code>[abc]</code></td><td>括号内任意一个字符</td><td><code>[Yy]es</code> 匹配 Yes、yes</td></tr>
+      <tr><td><code>[a-z]</code></td><td>范围内任意一个字符</td><td><code>[a-z]+</code> 匹配小写字母</td></tr>
+      <tr><td><code>[^abc]</code></td><td>除了 abc 以外的任意字符</td><td><code>[^0-9]</code> 匹配非数字</td></tr>
+      <tr><td><code>|</code></td><td>或</td><td><code>cat|dog</code> 匹配 cat 或 dog</td></tr>
+      <tr><td><code>^</code></td><td>行首</td><td><code>^hello</code> 匹配以 hello 开头的行</td></tr>
+      <tr><td><code>$</code></td><td>行尾</td><td><code>world$</code> 匹配以 world 结尾的行</td></tr>
+    </table>
+    <p class="tip">💡 组合起来用：比如 <code>1[3-9]\d{9}</code> = 1 开头 + 第二位是 3-9 + 后面跟 9 个数字 = 手机号</p>
+  </div>
 </div>
+
 <script>
-function test() {
-  const pat = document.getElementById('pattern').value;
-  let flags = '';
-  if (document.getElementById('flag_g').checked) flags += 'g';
-  if (document.getElementById('flag_i').checked) flags += 'i';
-  if (document.getElementById('flag_m').checked) flags += 'm';
-  const text = document.getElementById('text').value;
-  const result = document.getElementById('result');
-  const count = document.getElementById('count');
-  try {
-    const re = new RegExp(pat, flags);
-    let html = '', n = 0, last = 0;
-    if (flags.includes('g')) {
-      let m;
-      while ((m = re.exec(text)) !== null) {
-        html += escapeHtml(text.slice(last, m.index)) + '<span class="hit">' + escapeHtml(m[0]) + '</span>';
-        last = m.index + m[0].length;
-        n++;
-        if (m[0] === '') re.lastIndex++;
-      }
-      html += escapeHtml(text.slice(last));
-    } else {
-      const idx = text.search(re);
-      if (idx >= 0) {
-        const m = text.match(re);
-        html = escapeHtml(text.slice(0, idx)) +
-               '<span class="hit">' + escapeHtml(m[0]) + '</span>' +
-               escapeHtml(text.slice(idx + m[0].length));
-        n = 1;
-      } else {
-        html = escapeHtml(text);
-      }
-    }
-    result.innerHTML = html || '（无匹配）';
-    count.textContent = n > 0 ? `✅ 匹配到 ${n} 处` : '无匹配';
-    count.className = n > 0 ? 'count' : 'count error';
-  } catch (e) {
-    result.innerHTML = '<span class="error">正则错误：' + e.message + '</span>';
-    count.textContent = '';
-  }
-}
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-test();
+
+function fill(pattern) {
+  document.getElementById('pattern').value = pattern;
+  test();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function test() {
+  const pattern = document.getElementById('pattern').value;
+  const text = document.getElementById('text').value;
+  const flags = (document.getElementById('flag_g').checked ? 'g' : '') +
+                (document.getElementById('flag_i').checked ? 'i' : '') +
+                (document.getElementById('flag_m').checked ? 'm' : '');
+  const result = document.getElementById('result');
+  const count = document.getElementById('count');
+
+  if (!pattern) {
+    result.innerHTML = '';
+    count.textContent = '';
+    return;
+  }
+
+  try {
+    const re = new RegExp(pattern, flags);
+    const global = flags.includes('g');
+    if (global) {
+      const html = text.replace(re, m => '<span class="hit">' + escapeHtml(m) + '</span>');
+      result.innerHTML = html || '（无匹配）';
+      const matches = text.match(re);
+      count.textContent = matches ? `✅ 匹配到 ${matches.length} 处` : '❌ 无匹配';
+      count.className = matches ? 'count' : 'count error';
+    } else {
+      const m = text.match(re);
+      if (m) {
+        const idx = m.index;
+        result.innerHTML = escapeHtml(text.slice(0, idx)) +
+          '<span class="hit">' + escapeHtml(m[0]) + '</span>' +
+          escapeHtml(text.slice(idx + m[0].length));
+        count.textContent = `✅ 匹配到 1 处`;
+        count.className = 'count';
+      } else {
+        result.textContent = text || '（无文本）';
+        count.textContent = '❌ 无匹配';
+        count.className = 'count error';
+      }
+    }
+  } catch(e) {
+    result.textContent = '';
+    count.textContent = '❌ 正则语法错误：' + e.message;
+    count.className = 'count error';
+  }
+}
+
+window.onload = test;
 </script>
 </body>
 </html>
