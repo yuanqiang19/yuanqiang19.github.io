@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unicode 转换 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  button { padding: 7px 14px; background: #1f883d; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  button:hover { background: #1a7f37; }
+  button.secondary { background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; }
+  button.danger { background: #cf222e; }
+  .editor-area { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .editor-area { grid-template-columns: 1fr; } }
+  textarea { width: 100%; height: 300px; padding: 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; resize: vertical; outline: none; }
+  textarea:focus { border-color: #0969da; }
+  #output { background: #f6f8fa; }
+  .label { font-size: 12px; color: #57606a; margin-bottom: 4px; font-weight: 600; }
+  .msg { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 13px; display: none; }
+  .msg.show { display: block; }
+  .ok { background: #dafbe1; color: #1a7f37; }
+  .error { background: #ffebe9; color: #cf222e; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>☰ Unicode 转换</h1>
+  <div class="card">
+    <div class="toolbar">
+      <button onclick="encode()">编码（文本 → \uXXXX）</button>
+      <button onclick="decode()">解码（\uXXXX → 文本）</button>
+      <button onclick="copyResult()">复制结果</button>
+      <button onclick="clearAll()" class="danger">清空</button>
+    </div>
+    <div class="editor-area">
+      <div><div class="label">输入</div><textarea id="input" placeholder="输入文本，例如：你好"></textarea></div>
+      <div><div class="label">输出</div><textarea id="output" readonly></textarea></div>
+    </div>
+    <div id="msg" class="msg"></div>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function showMsg(t, c) { const m = $('msg'); m.textContent = t; m.className = 'msg show ' + c; }
+function encode() {
+  const s = $('input').value;
+  if (!s) return showMsg('请输入内容', 'error');
+  let r = '';
+  for (const ch of s) {
+    const code = ch.codePointAt(0);
+    if (code > 127) r += '\\u' + code.toString(16).toUpperCase().padStart(4, '0');
+    else r += ch;
+  }
+  $('output').value = r;
+  showMsg('✅ 编码完成', 'ok');
+}
+function decode() {
+  const s = $('input').value;
+  if (!s) return showMsg('请输入内容', 'error');
+  try {
+    $('output').value = s.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+    showMsg('✅ 解码完成', 'ok');
+  } catch (e) { showMsg('❌ 解码失败', 'error'); }
+}
+function copyResult() {
+  const v = $('output').value;
+  if (!v) return showMsg('无内容', 'error');
+  navigator.clipboard.writeText(v).then(() => showMsg('✅ 已复制', 'ok'));
+}
+function clearAll() { $('input').value = ''; $('output').value = ''; $('msg').className = 'msg'; }
+</script>
+</body>
+</html>
