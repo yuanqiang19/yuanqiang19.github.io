@@ -76,18 +76,30 @@ function parse() {
 function describe(v, unit) {
   if (v === '*') return '每' + unit;
   if (v.startsWith('*/')) return '每 ' + v.slice(2) + ' ' + unit;
+  if (v.includes('-')) {
+    const [a, b] = v.split('-');
+    return unit + '从 ' + a + ' 到 ' + b;
+  }
   if (v.includes(',')) return unit + '为 ' + v;
-  if (v.includes('-')) return unit + '从 ' + v.split('-')[0] + ' 到 ' + v.split('-')[1];
   return unit + '为 ' + v;
+}
+function describeWeek(week) {
+  const names = ['周日','周一','周二','周三','周四','周五','周六'];
+  if (week === '*') return '';
+  if (week.includes('-')) {
+    const [a, b] = week.split('-').map(n => names[+n]);
+    return a + '到' + b;
+  }
+  if (week.includes(',')) {
+    return week.split(',').map(n => names[+n]).join('、');
+  }
+  return names[+week] || week;
 }
 function describeDay(day, week) {
   let s = '';
   if (day !== '*') s += '在 ' + day + ' 号';
-  if (week !== '*') {
-    const names = ['周日','周一','周二','周三','周四','周五','周六'];
-    if (week.includes('-')) s += (day !== '*' ? ' 且 ' : '') + '星期' + week.split('-').map(n => names[+n]).join(' 到 ');
-    else s += (day !== '*' ? ' 且 ' : '') + names[+week];
-  }
+  const w = describeWeek(week);
+  if (w) s += (day !== '*' ? ' 且 ' : '') + w;
   return s || '每天';
 }
 parse();
