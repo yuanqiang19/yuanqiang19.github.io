@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IP 地址查询 - 元强工具箱</title>
-<meta name="description" content="在线IP地址查询工具：查看当前访问IP与归属地，支持手动输入IP查询，显示国家、地区、城市、运营商。">
+<meta name="description" content="在线IP地址查询工具：查看当前访问IP与归属地，支持手动输入IP查询。">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
@@ -56,45 +56,47 @@
 </div>
 
 <script>
-window.onload = query;
+// 全局回调函数，太平洋 API 返回时会调用它
+window.ipJson = function(data) {
+  document.getElementById('loading').style.display = 'none';
+  if (data.err) {
+    const e = document.getElementById('error');
+    e.textContent = '查询失败：' + data.err;
+    e.classList.add('show');
+    return;
+  }
+  document.getElementById('ip').textContent = data.ip || '未知';
+  document.getElementById('addr').textContent = data.addr || '-';
+  document.getElementById('org').textContent = data.isp || data.pro + data.city || '-';
+  document.getElementById('result').classList.add('show');
+  // 清理 script 标签
+  if (window._ipScript) {
+    document.body.removeChild(window._ipScript);
+    window._ipScript = null;
+  }
+};
 
 function query() {
   const ip = document.getElementById('ipInput').value.trim();
-  const loading = document.getElementById('loading');
-  const errBox = document.getElementById('error');
-  const result = document.getElementById('result');
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('error').classList.remove('show');
 
-  loading.style.display = 'block';
-  result.classList.remove('show');
-  errBox.classList.remove('show');
-
-  // 用太平洋电脑网的 API，国内访问稳定
-  const url = 'https://whois.pconline.com.cn/ipJson.jsp?json=true' + (ip ? '&ip=' + ip : '');
-
-  fetch(url)
-    .then(r => r.arrayBuffer())
-    .then(buf => {
-      // 太平洋返回 GBK 编码，需要转码
-      const text = new TextDecoder('gbk').decode(buf);
-      // 去掉 JSONP 包装：ipJson({...});
-      const jsonStr = text.replace(/^ipJson\(/, '').replace(/\);?$/, '');
-      return JSON.parse(jsonStr);
-    })
-    .then(data => {
-      if (data.err) throw new Error(data.err);
-      document.getElementById('ip').textContent = data.ip || ip || '未知';
-      document.getElementById('addr').textContent = data.addr || '-';
-      document.getElementById('org').textContent = data.isp || data.pro + data.city || '-';
-      result.classList.add('show');
-    })
-    .catch(err => {
-      errBox.textContent = '查询失败：' + err.message;
-      errBox.classList.add('show');
-    })
-    .finally(() => {
-      loading.style.display = 'none';
-    });
+  // 用 JSONP 方式加载，绕过 CORS 限制
+  if (window._ipScript) document.body.removeChild(window._ipScript);
+  const script = document.createElement('script');
+  script.src = 'https://whois.pconline.com.cn/ipJson.jsp?json=true' + (ip ? '&ip=' + ip : '');
+  script.onerror = function() {
+    document.getElementById('loading').style.display = 'none';
+    const e = document.getElementById('error');
+    e.textContent = '查询失败：网络请求超时';
+    e.classList.add('show');
+  };
+  document.body.appendChild(script);
+  window._ipScript = script;
 }
+
+window.onload = query;
 
 function copyIP() {
   const ip = document.getElementById('ip').textContent;
