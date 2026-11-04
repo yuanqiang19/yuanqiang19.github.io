@@ -1,15 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>IP查询 - 运维工具箱</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP 地址查询 - 元强工具箱</title>
+<meta name="description" content="在线IP地址查询工具：查看当前访问IP与归属地，支持手动输入IP查询，显示国家、地区、城市、运营商。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; }
+  .row { display: flex; gap: 8px; margin-bottom: 16px; }
+  input[type=text] { flex: 1; padding: 9px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; outline: none; }
+  input[type=text]:focus { border-color: #0969da; }
+  button { padding: 9px 20px; background: #1f883d; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  button:hover { background: #1a7f37; }
+  .loading { text-align: center; padding: 30px; color: #57606a; }
+  .result { display: none; }
+  .result.show { display: block; }
+  .ip-big { text-align: center; padding: 20px; background: #f6f8fa; border-radius: 8px; margin-bottom: 16px; }
+  .ip-big .ip { font-size: 32px; font-weight: 600; color: #0969da; font-variant-numeric: tabular-nums; }
+  .ip-big .copy { font-size: 12px; color: #0969da; cursor: pointer; }
+  .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #d0d7de; font-size: 14px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: #57606a; }
+  .info-row .value { font-weight: 500; }
+  .error { margin-top: 12px; padding: 12px; background: #ffebe9; color: #cf222e; border-radius: 6px; font-size: 14px; display: none; }
+  .error.show { display: block; }
+</style>
 </head>
 <body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>🌍 IP 地址查询</h1>
 
-<h1>IP查询工具</h1>
-<p>这里放你的IP地址信息（后面再加功能）</p>
+  <div class="card">
+    <div class="row">
+      <input type="text" id="ipInput" placeholder="输入 IP 查询，留空查当前 IP">
+      <button onclick="query()">查询</button>
+    </div>
+    <div class="loading" id="loading">加载中...</div>
+    <div class="error" id="error"></div>
+    <div class="result" id="result">
+      <div class="ip-big">
+        <div class="ip" id="ip">-</div>
+        <div class="copy" onclick="copyIP()">点此复制 IP</div>
+      </div>
+      <div class="info-row"><span class="label">国家</span><span class="value" id="country">-</span></div>
+      <div class="info-row"><span class="label">地区</span><span class="value" id="region">-</span></div>
+      <div class="info-row"><span class="label">城市</span><span class="value" id="city">-</span></div>
+      <div class="info-row"><span class="label">运营商</span><span class="value" id="org">-</span></div>
+      <div class="info-row"><span class="label">坐标</span><span class="value" id="loc">-</span></div>
+      <div class="info-row"><span class="label">时区</span><span class="value" id="timezone">-</span></div>
+    </div>
+  </div>
+</div>
 
-<a href="index.html">← 返回首页</a>
+<script>
+window.onload = query;
 
+function query() {
+  const ip = document.getElementById('ipInput').value.trim();
+  const url = ip ? `https://ipapi.co/${ip}/json/` : 'https://ipapi.co/json/';
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('error').classList.remove('show');
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.reason || '查询失败');
+      document.getElementById('ip').textContent = data.ip;
+      document.getElementById('country').textContent = data.country_name || '-';
+      document.getElementById('region').textContent = data.region || '-';
+      document.getElementById('city').textContent = data.city || '-';
+      document.getElementById('org').textContent = data.org || data.asn || '-';
+      document.getElementById('loc').textContent = data.latitude && data.longitude
+        ? `${data.latitude}, ${data.longitude}` : '-';
+      document.getElementById('timezone').textContent = data.timezone || '-';
+      document.getElementById('result').classList.add('show');
+    })
+    .catch(err => {
+      const e = document.getElementById('error');
+      e.textContent = '查询失败：' + err.message + '（可能是 API 被限流，稍后重试）';
+      e.classList.add('show');
+    })
+    .finally(() => {
+      document.getElementById('loading').style.display = 'none';
+    });
+}
+
+function copyIP() {
+  const ip = document.getElementById('ip').textContent;
+  navigator.clipboard.writeText(ip).then(() => {
+    document.querySelector('.copy').textContent = '已复制 ✓';
+    setTimeout(() => document.querySelector('.copy').textContent = '点此复制 IP', 1000);
+  });
+}
+</script>
 </body>
 </html>
