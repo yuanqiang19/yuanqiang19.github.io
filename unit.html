@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单位换算 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 720px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { padding: 6px 14px; border: 1px solid #d0d7de; border-radius: 6px; cursor: pointer; font-size: 13px; background: #f6f8fa; }
+  .tab.active { background: #1f883d; color: #fff; border-color: #1f883d; }
+  .row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  input, select { padding: 8px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; outline: none; }
+  input:focus, select:focus { border-color: #0969da; }
+  input[type=number] { width: 140px; }
+  .result { margin-top: 16px; padding: 14px; background: #f6f8fa; border-radius: 6px; font-size: 15px; }
+  .result b { color: #0969da; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>📏 单位换算</h1>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('length', this)">长度</div>
+      <div class="tab" onclick="switchTab('weight', this)">重量</div>
+      <div class="tab" onclick="switchTab('temp', this)">温度</div>
+    </div>
+
+    <div class="row">
+      <input type="number" id="inputVal" placeholder="数值" oninput="convert()" value="1">
+      <select id="fromUnit" onchange="convert()"></select>
+      <span>→</span>
+      <select id="toUnit" onchange="convert()"></select>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script>
+const data = {
+  length: {
+    units: { '毫米 mm': 0.001, '厘米 cm': 0.01, '米 m': 1, '千米 km': 1000, '英寸 in': 0.0254, '英尺 ft': 0.3048, '英里 mile': 1609.344 },
+    base: '米 m'
+  },
+  weight: {
+    units: { '毫克 mg': 0.000001, '克 g': 0.001, '千克 kg': 1, '吨 t': 1000, '盎司 oz': 0.0283495, '磅 lb': 0.453592 },
+    base: '千克 kg'
+  },
+  temp: { units: { '摄氏 °C': 'c', '华氏 °F': 'f', '开尔文 K': 'k' }, base: '摄氏 °C' }
+};
+let currentTab = 'length';
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  fillUnits();
+  convert();
+}
+
+function fillUnits() {
+  const d = data[currentTab];
+  const from = document.getElementById('fromUnit');
+  const to = document.getElementById('toUnit');
+  from.innerHTML = to.innerHTML = '';
+  Object.keys(d.units).forEach(u => {
+    from.innerHTML += `<option>${u}</option>`;
+    to.innerHTML += `<option>${u}</option>`;
+  });
+  to.selectedIndex = 2;
+}
+
+function convert() {
+  const val = parseFloat(document.getElementById('inputVal').value);
+  if (isNaN(val)) { document.getElementById('result').innerHTML = '请输入数值'; return; }
+  const from = document.getElementById('fromUnit').value;
+  const to = document.getElementById('toUnit').value;
+  let result;
+  if (currentTab === 'temp') {
+    let c;
+    if (from.includes('°C')) c = val;
+    else if (from.includes('°F')) c = (val - 32) * 5 / 9;
+    else c = val - 273.15;
+    if (to.includes('°C')) result = c;
+    else if (to.includes('°F')) result = c * 9 / 5 + 32;
+    else result = c + 273.15;
+  } else {
+    const d = data[currentTab];
+    result = val * d.units[from] / d.units[to];
+  }
+  document.getElementById('result').innerHTML =
+    `${val} ${from} = <b>${parseFloat(result.toFixed(6))}</b> ${to}`;
+}
+
+fillUnits();
+convert();
+</script>
+</body>
+</html>
