@@ -69,9 +69,12 @@ function test() {
       }
       html += escapeHtml(text.slice(last));
     } else {
-      const m = text.match(re);
-      if (m) {
-        html = escapeHtml(text.replace(re, '<span class="hit">' + m[0] + '</span>'));
+      const idx = text.search(re);
+      if (idx >= 0) {
+        const m = text.match(re);
+        html = escapeHtml(text.slice(0, idx)) +
+               '<span class="hit">' + escapeHtml(m[0]) + '</span>' +
+               escapeHtml(text.slice(idx + m[0].length));
         n = 1;
       } else {
         html = escapeHtml(text);
