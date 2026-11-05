@@ -33,6 +33,9 @@
       <div class="tab active" onclick="switchTab('length', this)">长度</div>
       <div class="tab" onclick="switchTab('weight', this)">重量</div>
       <div class="tab" onclick="switchTab('temp', this)">温度</div>
+      <div class="tab" onclick="switchTab('area', this)">面积</div>
+      <div class="tab" onclick="switchTab('time', this)">时间</div>
+      <div class="tab" onclick="switchTab('data', this)">数据存储</div>
     </div>
 
     <div class="row">
@@ -68,7 +71,19 @@ const data = {
     units: { '毫克 mg': 0.000001, '克 g': 0.001, '千克 kg': 1, '吨 t': 1000, '盎司 oz': 0.0283495, '磅 lb': 0.453592 },
     base: '千克 kg'
   },
-  temp: { units: { '摄氏 °C': 'c', '华氏 °F': 'f', '开尔文 K': 'k' }, base: '摄氏 °C' }
+  temp: { units: { '摄氏 °C': 'c', '华氏 °F': 'f', '开尔文 K': 'k' }, base: '摄氏 °C' },
+  area: {
+    units: { '平方厘米 cm²': 0.0001, '平方米 m²': 1, '平方千米 km²': 1000000, '公顷 ha': 10000, '亩': 666.67, '平方英尺 ft²': 0.0929, '英亩 acre': 4046.86 },
+    base: '平方米 m²'
+  },
+  time: {
+    units: { '毫秒 ms': 0.001, '秒 s': 1, '分钟 min': 60, '小时 h': 3600, '天 day': 86400, '周 week': 604800, '月(30天) month': 2592000, '年(365天) year': 31536000 },
+    base: '秒 s'
+  },
+  data: {
+    units: { '字节 B': 1, 'KB': 1024, 'MB': 1024*1024, 'GB': 1024*1024*1024, 'TB': 1024*1024*1024*1024 },
+    base: '字节 B'
+  }
 };
 let currentTab = 'length';
 

@@ -72,6 +72,8 @@
       <button onclick="decode()">解码（%XX → 文本）</button>
       <button onclick="copyResult()">复制结果</button>
       <button onclick="swap()" class="secondary">交换 ⇅</button>
+      <button onclick="document.getElementById('fileInput').click()" class="secondary">📁 上传文件</button>
+      <input type="file" id="fileInput" style="display:none" onchange="loadFile(event)">
       <button onclick="clearAll()" class="danger">清空</button>
     </div>
     <div style="margin-bottom:12px;font-size:12px;color:#57606a;">示例：
@@ -141,6 +143,18 @@ function swap() {
 function loadSample(text) {
   $('input').value = text;
   $('msg').className = 'msg';
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    $('input').value = e.target.result;
+    showMsg('✅ 已加载文件：' + file.name, 'ok');
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 function clearAll() {
