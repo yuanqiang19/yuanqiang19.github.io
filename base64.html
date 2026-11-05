@@ -74,6 +74,11 @@
       <button onclick="swap()" class="secondary">交换 ⇅</button>
       <button onclick="clearAll()" class="danger">清空</button>
     </div>
+    <div style="margin-bottom:12px;font-size:12px;color:#57606a;">示例：
+      <button class="secondary" onclick="loadSample('你好世界，这是一段中文测试')">中文文本</button>
+      <button class="secondary" onclick="loadSample('Hello World! This is a test.')">英文文本</button>
+      <button class="secondary" onclick="loadSample('eyJ0ZXN0Ijoi5Lit5paH5a2X56ym5LiyIn0=')">解码示例</button>
+    </div>
 
     <div class="editor-area">
       <div>
@@ -147,6 +152,11 @@ function swap() {
   const a = $('input').value;
   $('input').value = $('output').value;
   $('output').value = a;
+}
+
+function loadSample(text) {
+  $('input').value = text;
+  $('msg').className = 'msg';
 }
 
 function clearAll() {

@@ -41,12 +41,24 @@
     <button onclick="parse()">解析</button>
     <div class="preset">
       <button onclick="setCron('* * * * *')">每分钟</button>
-      <button onclick="setCron('0 * * * *')">每小时</button>
+      <button onclick="setCron('*/5 * * * *')">每5分钟</button>
+      <button onclick="setCron('0 * * * *')">每小时整点</button>
       <button onclick="setCron('0 0 * * *')">每天零点</button>
-      <button onclick="setCron('30 2 * * *')">每天凌晨 2:30</button>
-      <button onclick="setCron('0 9 * * 1-5')">工作日早 9 点</button>
-      <button onclick="setCron('0 0 1 * *')">每月 1 号零点</button>
+      <button onclick="setCron('0 12 * * *')">每天中午12点</button>
+      <button onclick="setCron('30 2 * * *')">每天凌晨2:30</button>
+      <button onclick="setCron('0 9 * * 1-5')">工作日早9点</button>
+      <button onclick="setCron('0 18 * * 5')">每周五下午6点</button>
+      <button onclick="setCron('0 0 1 * *')">每月1号零点</button>
+      <button onclick="setCron('0 0 1 1 *')">每年元旦零点</button>
     </div>
+
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #d0d7de;">
+      <div style="font-size:13px;color:#57606a;margin-bottom:8px;">💬 大白话生成（直接说你想什么时候执行）：</div>
+      <input type="text" id="cronDesc" placeholder="比如：每天早上9点 / 每周一中午12点 / 每月1号凌晨3点" style="margin-bottom:8px;">
+      <button onclick="genCron()" style="padding:8px 16px;font-size:13px;">生成 Cron</button>
+      <div id="genResult" style="margin-top:8px;font-size:13px;color:#1a7f37;display:none;"></div>
+    </div>
+
     <div class="desc-box" id="desc" style="display:none"></div>
   </div>
 
@@ -102,6 +114,77 @@ function describeDay(day, week) {
   if (w) s += (day !== '*' ? ' 且 ' : '') + w;
   return s || '每天';
 }
+// 大白话生成 cron
+function genCron() {
+  const text = document.getElementById('cronDesc').value.trim();
+  if (!text) return;
+
+  let min = '*', hour = '*', day = '*', month = '*', week = '*';
+  let result = '';
+
+  // 提取时间（几点几分）
+  let timeMatch = text.match(/(\d{1,2})[点时:：](\d{1,2})?分?/);
+  if (timeMatch) {
+    hour = timeMatch[1];
+    min = timeMatch[2] || '0';
+    // 下午/晚上
+    if (/下午|晚上|傍晚/.test(text) && hour < 12) hour = Number(hour) + 12;
+  } else {
+    // 早上几点
+    timeMatch = text.match(/早上(\d{1,2})点?/);
+    if (timeMatch) { hour = timeMatch[1]; min = '0'; }
+    else if (/零点|凌晨0点/.test(text)) { hour = '0'; min = '0'; }
+    else if (/中午12点/.test(text)) { hour = '12'; min = '0'; }
+  }
+
+  // 每天
+  if (/每天|每日/.test(text)) {
+    // 每天就是 * * *
+  }
+
+  // 每周
+  const weekMap = {'日':'0','天':'0','一':'1','二':'2','三':'3','四':'4','五':'5','六':'6'};
+  let weekMatch = text.match(/每周([一二三四五六日天])/);
+  if (weekMatch) {
+    week = weekMap[weekMatch[1]];
+    day = '*';
+  }
+
+  // 每月
+  let dayMatch = text.match(/每月(\d{1,2})号?/);
+  if (dayMatch) {
+    day = dayMatch[1];
+    week = '*';
+  }
+
+  // 每小时
+  if (/每小时/.test(text)) {
+    hour = '*';
+    min = '0';
+  }
+
+  // 每分钟
+  if (/每分钟/.test(text)) {
+    min = '*';
+    hour = '*';
+  }
+
+  // 每N分钟
+  let nMinMatch = text.match(/每(\d+)分钟/);
+  if (nMinMatch) {
+    min = '*/' + nMinMatch[1];
+    hour = '*';
+  }
+
+  const cron = `${min} ${hour} ${day} ${month} ${week}`;
+  document.getElementById('cron').value = cron;
+  parse();
+
+  const r = document.getElementById('genResult');
+  r.style.display = 'block';
+  r.innerHTML = `✅ 生成：<code style="background:#f6f8fa;padding:2px 6px;border-radius:4px;">${cron}</code>`;
+}
+
 parse();
 </script>
 </body>

@@ -40,6 +40,11 @@
       <button onclick="copyResult()">复制结果</button>
       <button onclick="clearAll()" class="danger">清空</button>
     </div>
+    <div style="margin-bottom:12px;font-size:12px;color:#57606a;">示例：
+      <button class="secondary" onclick="loadSample('你好世界')">中文编码</button>
+      <button class="secondary" onclick="loadSample('\\u4F60\\u597D\\u4E16\\u754C')">Unicode解码</button>
+      <button class="secondary" onclick="loadSample('🎉🔥💻')">Emoji表情</button>
+    </div>
     <div class="editor-area">
       <div><div class="label">输入</div><textarea id="input" placeholder="输入文本，例如：你好"></textarea></div>
       <div><div class="label">输出</div><textarea id="output" readonly></textarea></div>
@@ -75,6 +80,7 @@ function copyResult() {
   if (!v) return showMsg('无内容', 'error');
   navigator.clipboard.writeText(v).then(() => showMsg('✅ 已复制', 'ok'));
 }
+function loadSample(text) { $('input').value = text; $('msg').className = 'msg'; }
 function clearAll() { $('input').value = ''; $('output').value = ''; $('msg').className = 'msg'; }
 </script>
 </body>

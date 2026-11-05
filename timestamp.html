@@ -71,6 +71,14 @@
       <input type="text" id="tsInput" placeholder="输入时间戳，自动识别秒/毫秒，如 1730688000 或 1730688000000">
       <button onclick="tsToDate()">转换</button>
     </div>
+    <div style="margin:8px 0;font-size:12px;color:#57606a;">快捷填入：
+      <button class="secondary" onclick="quickTs(0)">当前时间</button>
+      <button class="secondary" onclick="quickTs(1)">今天0点</button>
+      <button class="secondary" onclick="quickTs(24*3600)">昨天0点</button>
+      <button class="secondary" onclick="quickTs(7*24*3600)">7天前</button>
+      <button class="secondary" onclick="quickTs(30*24*3600)">30天前</button>
+      <button class="secondary" onclick="quickTs(365*24*3600)">1年前</button>
+    </div>
     <div class="result" id="tsResult"></div>
   </div>
 
@@ -82,6 +90,13 @@
     </div>
     <div class="result" id="dateResult"></div>
     <div class="hint">注：日期时间按你浏览器本地时区（中国大陆为 UTC+8）解析。</div>
+  </div>
+
+  <div class="card">
+    <h2>💬 大白话转时间戳</h2>
+    <input type="text" id="descTs" placeholder="比如：2026年11月5日下午3点 / 明天早上8点 / 一周后" style="margin-bottom:10px;">
+    <button onclick="descToTs()">转换</button>
+    <div class="result" id="descResult"></div>
   </div>
 </div>
 
@@ -127,6 +142,79 @@ function dateToTs() {
     '<div class="label">毫秒级时间戳</div>' +
     '<div class="value">' + ms + ' <button class="secondary" onclick="copyText(\'' + ms + '\', this)">复制</button></div>';
   document.getElementById('dateResult').classList.add('show');
+}
+
+// 大白话转时间戳
+function descToTs() {
+  const text = document.getElementById('descTs').value.trim();
+  if (!text) return;
+  let d = new Date();
+
+  // 明天
+  if (/明天/.test(text)) {
+    d.setDate(d.getDate() + 1);
+  }
+  // 后天
+  if (/后天/.test(text)) {
+    d.setDate(d.getDate() + 2);
+  }
+  // 昨天
+  if (/昨天/.test(text)) {
+    d.setDate(d.getDate() - 1);
+  }
+  // N天后
+  let m = text.match(/(\d+)天后/);
+  if (m) d.setDate(d.getDate() + Number(m[1]));
+  // N周后
+  m = text.match(/(\d+)周后/);
+  if (m) d.setDate(d.getDate() + Number(m[1]) * 7);
+  // N月后
+  m = text.match(/(\d+)月后/);
+  if (m) d.setMonth(d.getMonth() + Number(m[1]));
+
+  // 提取具体时间（几点几分）
+  let timeMatch = text.match(/(\d{1,2})[点时:：](\d{1,2})?分?/);
+  if (timeMatch) {
+    let h = Number(timeMatch[1]);
+    let min = Number(timeMatch[2]) || 0;
+    if (/下午|晚上|傍晚/.test(text) && h < 12) h += 12;
+    d.setHours(h, min, 0, 0);
+  }
+
+  // 提取具体日期（XXXX年XX月XX日）
+  let dateMatch = text.match(/(\d{4})年(\d{1,2})月(\d{1,2})日?/);
+  if (dateMatch) {
+    d = new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]));
+    if (timeMatch) {
+      let h = Number(timeMatch[1]);
+      if (/下午|晚上/.test(text) && h < 12) h += 12;
+      d.setHours(h, Number(timeMatch[2]) || 0, 0, 0);
+    }
+  }
+
+  const sec = Math.floor(d.getTime() / 1000);
+  const bj = d.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
+  const r = document.getElementById('descResult');
+  r.style.display = 'block';
+  r.innerHTML =
+    '<div class="label">你说的是：' + bj + '（北京时间）</div>' +
+    '<div class="label">秒级时间戳</div>' +
+    '<div class="value">' + sec + ' <button class="secondary" onclick="copyText(\'' + sec + '\', this)">复制</button></div>' +
+    '<div class="label">毫秒级时间戳</div>' +
+    '<div class="value">' + d.getTime() + '</div>';
+}
+
+function quickTs(type) {
+  const now = new Date();
+  let ts;
+  if (type === 0) {
+    ts = Math.floor(now.getTime() / 1000);
+  } else {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    ts = Math.floor(today.getTime() / 1000) - type;
+  }
+  document.getElementById('tsInput').value = ts;
+  tsToDate();
 }
 
 function copyText(t, btn) {

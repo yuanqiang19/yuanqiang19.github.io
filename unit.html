@@ -41,7 +41,20 @@
       <span>→</span>
       <select id="toUnit" onchange="convert()"></select>
     </div>
+    <div style="margin-bottom:12px;font-size:12px;color:#57606a;">常用：
+      <button class="secondary" onclick="quick(100,'厘米 cm','米 m')">100厘米=?米</button>
+      <button class="secondary" onclick="quick(1,'千米','英里')">1公里=?英里</button>
+      <button class="secondary" onclick="quick(1,'千克 kg','磅 lb')">1公斤=?磅</button>
+      <button class="secondary" onclick="quick(100,'摄氏 °C','华氏 °F')">100°C=?°F</button>
+    </div>
     <div class="result" id="result"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:16px;margin-bottom:12px;">💬 大白话换算</h2>
+    <input type="text" id="descUnit" placeholder="比如：100厘米等于多少米 / 1公里是多少英里 / 100华氏度是多少摄氏度" style="margin-bottom:10px;">
+    <button onclick="descConvert()">换算</button>
+    <div class="result" id="descResult" style="display:none;"></div>
   </div>
 </div>
 
@@ -99,6 +112,70 @@ function convert() {
   }
   document.getElementById('result').innerHTML =
     `${val} ${from} = <b>${parseFloat(result.toFixed(6))}</b> ${to}`;
+}
+
+// 大白话换算
+function descConvert() {
+  const text = document.getElementById('descUnit').value.trim();
+  if (!text) return;
+
+  // 提取数字
+  const numMatch = text.match(/(\d+\.?\d*)/);
+  if (!numMatch) return;
+  const val = parseFloat(numMatch[1]);
+
+  // 单位映射
+  const unitMap = {
+    '毫米': '毫米 mm', 'cm': '厘米 cm', '厘米': '厘米 cm',
+    '米': '米 m', '公里': '千米 km', '千米': '千米 km',
+    '英寸': '英寸 in', '英尺': '英尺 ft', '英里': '英里 mile',
+    '克': '克 g', '千克': '千克 kg', '公斤': '千克 kg',
+    '吨': '吨 t', '磅': '磅 lb', '盎司': '盎司 oz',
+    '摄氏度': '摄氏 °C', '度': '摄氏 °C', '℃': '摄氏 °C',
+    '华氏度': '华氏 °F', '℉': '华氏 °F'
+  };
+
+  // 找两个单位
+  const found = [];
+  for (const [key, unitName] of Object.entries(unitMap)) {
+    if (text.includes(key)) found.push(unitName);
+  }
+
+  if (found.length < 2) {
+    document.getElementById('descResult').style.display = 'block';
+    document.getElementById('descResult').innerHTML = '没识别到两个单位，试试写：100厘米=?米';
+    return;
+  }
+
+  const from = found[0];
+  const to = found[1];
+
+  // 判断是长度/重量/温度
+  let tab = 'length';
+  if (from.includes('kg') || from.includes('克') || from.includes('磅') || from.includes('吨')) tab = 'weight';
+  if (from.includes('°C') || from.includes('°F')) tab = 'temp';
+
+  // 切换 tab
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab:nth-child(' + (tab === 'length' ? 1 : tab === 'weight' ? 2 : 3) + ')').classList.add('active');
+  fillUnits();
+
+  document.getElementById('inputVal').value = val;
+  document.getElementById('fromUnit').value = from;
+  document.getElementById('toUnit').value = to;
+  convert();
+
+  // 把结果复制到大话话区域
+  document.getElementById('descResult').style.display = 'block';
+  document.getElementById('descResult').innerHTML = document.getElementById('result').innerHTML;
+}
+
+function quick(val, from, to) {
+  document.getElementById('inputVal').value = val;
+  document.getElementById('fromUnit').value = from;
+  document.getElementById('toUnit').value = to;
+  convert();
 }
 
 fillUnits();
