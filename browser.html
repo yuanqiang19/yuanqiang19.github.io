@@ -61,12 +61,13 @@ document.getElementById('browser').textContent = browser;
 // 识别操作系统（手机优先，再判断桌面）
 var os = '未知';
 if (ua.indexOf('iPhone') > -1) {
-  var iosMatch = ua.match(/iPhone OS (\d+)_(\d+)/);
-  os = iosMatch ? 'iPhone iOS ' + iosMatch[1] + '.' + iosMatch[2] : 'iPhone iOS';
+  // 苹果UA里 iPhone OS 后面的版本号已被冻结，真实版本号在 Version/ 后面
+  var iosMatch = ua.match(/Version\/(\d+\.\d+)/);
+  os = iosMatch ? 'iPhone iOS ' + iosMatch[1] : 'iPhone';
 }
 else if (ua.indexOf('iPad') > -1) {
-  var ipadMatch = ua.match(/OS (\d+)_(\d+)/);
-  os = ipadMatch ? 'iPad iOS ' + ipadMatch[1] + '.' + ipadMatch[2] : 'iPad iOS';
+  var ipadMatch = ua.match(/Version\/(\d+\.\d+)/);
+  os = ipadMatch ? 'iPad iOS ' + ipadMatch[1] : 'iPad';
 }
 else if (ua.indexOf('Android') > -1) {
   var androidMatch = ua.match(/Android (\d+\.?\d*)/);
@@ -79,7 +80,8 @@ else if (ua.indexOf('Mac OS X') > -1) os = 'macOS';
 else if (ua.indexOf('Linux') > -1) os = 'Linux';
 document.getElementById('os').textContent = os;
 
-document.getElementById('screen').textContent = screen.width + ' × ' + screen.height;
+var dpr = window.devicePixelRatio || 1;
+document.getElementById('screen').textContent = screen.width + ' × ' + screen.height + '（@' + dpr + 'x）';
 document.getElementById('window').textContent = innerWidth + ' × ' + innerHeight;
 document.getElementById('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
 document.getElementById('lang').textContent = navigator.language;
