@@ -309,47 +309,65 @@ function buildFromDesc() {
   const text = $('descInput').value.trim();
   if (!text) return showError('请先写描述');
 
-  const obj = {};
+  // 检测是否要求用中文键名
+  const useChinese = /不用翻译|中文键名|中文key|不要翻译/.test(text);
 
-  // 1. 先解析标准格式：键名=值 或 键名：值
-  const lines = text.split(/[\n,，;；]/).map(l => l.trim()).filter(l => l);
-  for (const line of lines) {
-    const match = line.match(/^([^=:：]+)[=:：](.+)$/);
-    if (match) {
-      const key = match[1].trim();
-      let val = match[2].trim();
-      obj[key] = autoType(val);
+  // 用数组保存，记录每个键出现的位置，最后按输入顺序排序
+  const entries = [];
+
+  // 1. 扫描标准格式：键名=值 / 键名：值
+  const standardRe = /([^=:，,。\s]{1,15})[=:：]([^=:，,。\s]+)/g;
+  let m;
+  while ((m = standardRe.exec(text)) !== null) {
+    let key = m[1].trim();
+    // 自动把中文键名映射成英文（除非要求用中文）
+    if (!useChinese) {
+      if (key.includes('备注')) key = 'remark';
+      else if (key.includes('姓名') || key.includes('名字')) key = 'name';
+      else if (key.includes('年龄')) key = 'age';
+      else if (key.includes('邮箱')) key = 'email';
+      else if (key.includes('手机') || key.includes('电话')) key = 'phone';
+      else if (key.includes('城市') || key.includes('地址')) key = 'city';
+      else if (key.includes('会员')) key = 'isVip';
     }
+    entries.push({ pos: m.index, key: key, val: autoType(m[2].trim()) });
   }
 
-  // 2. 再用大白话智能识别，补充标准格式没识别到的
-  // 名字/姓名
-  let m = text.match(/(?:我叫|名字是|姓名是|名称是|我是)([\u4e00-\u9fa5a-zA-Z0-9]{2,10})/);
-  if (m && !obj['姓名'] && !obj['名字']) obj['姓名'] = m[1];
+  // 2. 大白话模式，记录位置
+  // 我叫XX / 名字是XX
+  m = text.match(/(?:我叫|名字是|姓名是|名称是)([\u4e00-\u9fa5a-zA-Z0-9]{2,10})/);
+  if (m) entries.push({ pos: m.index, key: useChinese ? '姓名' : 'name', val: m[1] });
 
-  // 年龄
+  // XX岁
   m = text.match(/(\d{1,3})\s*(?:岁|年纪|年龄)/);
-  if (m && !obj['年龄']) obj['年龄'] = Number(m[1]);
+  if (m) entries.push({ pos: m.index, key: useChinese ? '年龄' : 'age', val: Number(m[1]) });
 
   // 邮箱
   m = text.match(/([\w.-]+@[\w.-]+\.\w+)/);
-  if (m && !obj['邮箱']) obj['邮箱'] = m[1];
+  if (m) entries.push({ pos: m.index, key: useChinese ? '邮箱' : 'email', val: m[1] });
 
   // 手机号
   m = text.match(/(1[3-9]\d{9})/);
-  if (m && !obj['手机号']) obj['手机号'] = m[1];
+  if (m) entries.push({ pos: m.index, key: useChinese ? '手机号' : 'phone', val: m[1] });
 
-  // 是会员/VIP
-  if (/是会员|VIP|开通了会员/.test(text) && !obj['是否会员']) obj['是否会员'] = true;
-  if (/不是会员|没开会员/.test(text) && !obj['是否会员']) obj['是否会员'] = false;
+  // 是会员
+  let idx = text.search(/是会员|VIP|开通了会员/);
+  if (idx >= 0) entries.push({ pos: idx, key: useChinese ? '是否会员' : 'isVip', val: true });
+  idx = text.search(/不是会员|没开会员/);
+  if (idx >= 0) entries.push({ pos: idx, key: useChinese ? '是否会员' : 'isVip', val: false });
 
-  // 城市/地址
+  // 住在XX / 来自XX
   m = text.match(/(?:住在|城市是|地址在|来自)([\u4e00-\u9fa5]{2,6})/);
-  if (m && !obj['城市']) obj['城市'] = m[1];
+  if (m) entries.push({ pos: m.index, key: useChinese ? '城市' : 'city', val: m[1] });
 
-  // 性别
-  if (/我是男的|性别男|男生/.test(text) && !/女生|女性|我是女的/.test(text) && !obj['性别']) obj['性别'] = '男';
-  if (/我是女的|性别女|女生/.test(text) && !/男生|男性|我是男的/.test(text) && !obj['性别']) obj['性别'] = '女';
+  // 按位置排序，保持输入顺序
+  entries.sort((a, b) => a.pos - b.pos);
+
+  // 去重（后面的覆盖前面的同键）
+  const obj = {};
+  for (const e of entries) {
+    obj[e.key] = e.val;
+  }
 
   if (Object.keys(obj).length === 0) {
     return showError('没识别到内容，试试写：我叫张三，今年28岁，邮箱是xxx@qq.com');
