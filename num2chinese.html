@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字转中文大写 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 16px; margin-bottom: 12px; }
+  .result { background: #f6f8fa; padding: 16px; border-radius: 6px; font-size: 18px; margin-top: 12px; }
+  .label { font-size: 13px; color: #57606a; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>🔢 数字转中文大写</h1>
+
+  <div class="card">
+    <div class="label">输入数字（比如：123456.78）</div>
+    <input type="text" id="num" placeholder="输入金额或数字" oninput="convert()">
+    <div class="result" id="result">-</div>
+  </div>
+</div>
+
+<script>
+function convert() {
+  const input = document.getElementById('num').value.trim();
+  if (!input) {
+    document.getElementById('result').textContent = '-';
+    return;
+  }
+
+  const digits = '零壹贰叁肆伍陆柒捌玖';
+  const units = ['', '拾', '佰', '仟'];
+  const bigUnits = ['', '万', '亿', '万亿'];
+
+  function intToChinese(n) {
+    if (n === 0) return '零';
+    let str = '';
+    let unitPos = 0;
+    let needZero = false;
+
+    while (n > 0) {
+      const section = n % 10000;
+      if (section === 0) {
+        needZero = true;
+      } else {
+        let sectionStr = '';
+        let s = section;
+        let u = 0;
+        while (s > 0) {
+          const d = s % 10;
+          if (d === 0) {
+            if (sectionStr && !sectionStr.startsWith('零')) {
+              sectionStr = '零' + sectionStr;
+            }
+          } else {
+            sectionStr = digits[d] + units[u] + sectionStr;
+          }
+          s = Math.floor(s / 10);
+          u++;
+        }
+        str = sectionStr + bigUnits[unitPos] + (needZero ? '零' : '') + str;
+        needZero = false;
+      }
+      n = Math.floor(n / 10000);
+      unitPos++;
+    }
+    return str.replace(/零+$/, '');
+  }
+
+  const parts = input.split('.');
+  const intPart = parseInt(parts[0]);
+  const decPart = parts[1];
+
+  let result = '';
+  if (isNaN(intPart)) {
+    result = '请输入有效数字';
+  } else {
+    result = intToChinese(intPart);
+    if (decPart) {
+      result += '点';
+      for (const c of decPart) {
+        result += digits[parseInt(c)] || c;
+      }
+    }
+  }
+
+  document.getElementById('result').textContent = result;
+}
+</script>
+</body>
+</html>

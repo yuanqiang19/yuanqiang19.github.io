@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日期计算器 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 16px; margin-bottom: 16px; }
+  .row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  input, select { padding: 8px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; }
+  button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; background: #2da44e; color: #fff; }
+  button:hover { opacity: 0.9; }
+  .result { background: #f6f8fa; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>📅 日期计算器</h1>
+
+  <div class="card">
+    <h2>两个日期相差几天</h2>
+    <div class="row">
+      <label>开始：</label>
+      <input type="date" id="date1">
+    </div>
+    <div class="row">
+      <label>结束：</label>
+      <input type="date" id="date2">
+      <button onclick="diffDays()">计算</button>
+    </div>
+    <div class="result" id="diffResult"></div>
+  </div>
+
+  <div class="card">
+    <h2>推算日期（加/减 N 天）</h2>
+    <div class="row">
+      <label>基准：</label>
+      <input type="date" id="baseDate">
+    </div>
+    <div class="row">
+      <input type="number" id="days" value="30" style="width:100px;">
+      <select id="dir">
+        <option value="1">天后</option>
+        <option value="-1">天前</option>
+      </select>
+      <button onclick="addDays()">计算</button>
+    </div>
+    <div class="result" id="addResult"></div>
+  </div>
+</div>
+
+<script>
+// 默认今天
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('date1').value = today;
+document.getElementById('date2').value = today;
+document.getElementById('baseDate').value = today;
+
+function diffDays() {
+  const d1 = new Date(document.getElementById('date1').value);
+  const d2 = new Date(document.getElementById('date2').value);
+  const diff = Math.abs(d2 - d1) / (1000 * 60 * 60 * 24);
+  const days = Math.round(diff);
+  const weeks = (days / 7).toFixed(1);
+  const months = (days / 30).toFixed(1);
+  const years = (days / 365).toFixed(1);
+  document.getElementById('diffResult').innerHTML =
+    `相差 <b>${days}</b> 天<br>≈ ${weeks} 周 · ${months} 个月 · ${years} 年`;
+}
+
+function addDays() {
+  const base = new Date(document.getElementById('baseDate').value);
+  const n = parseInt(document.getElementById('days').value);
+  const dir = parseInt(document.getElementById('dir').value);
+  base.setDate(base.getDate() + n * dir);
+  const weekdays = ['日','一','二','三','四','五','六'];
+  document.getElementById('addResult').innerHTML =
+    `${n} 天${dir === 1 ? '后' : '前'}是：<b>${base.getFullYear()}年${base.getMonth()+1}月${base.getDate()}日 星期${weekdays[base.getDay()]}</b>`;
+}
+</script>
+</body>
+</html>
