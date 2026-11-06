@@ -17,9 +17,14 @@
   .uuid-item button { padding: 4px 10px; font-size: 12px; background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; cursor: pointer; border-radius: 4px; }
   .uuid-item button:hover { background: #eaeef2; }
   .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-  select { padding: 8px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; }
+  select, input[type=text] { padding: 8px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; }
+  input[type=text] { flex: 1; min-width: 150px; }
   button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; background: #2da44e; color: #fff; }
   button:hover { opacity: 0.9; }
+  .tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #d0d7de; }
+  .tab { padding: 8px 16px; cursor: pointer; font-size: 14px; color: #57606a; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: #0969da; border-bottom-color: #0969da; }
+  .tip { font-size: 12px; color: #57606a; margin-top: 12px; padding: 10px; background: #ddf4ff; border-radius: 6px; }
 </style>
 </head>
 <body>
@@ -28,30 +33,93 @@
   <h1>🆔 UUID 生成器</h1>
 
   <div class="card">
-    <div class="toolbar">
-      <label style="font-size:14px;">生成数量：</label>
-      <select id="count">
-        <option value="1">1 个</option>
-        <option value="5" selected>5 个</option>
-        <option value="10">10 个</option>
-        <option value="20">20 个</option>
-      </select>
-      <label style="font-size:14px;">格式：</label>
-      <select id="format">
-        <option value="dash" selected>带横线（标准）</option>
-        <option value="nodash">不带横线</option>
-        <option value="upper">大写</option>
-      </select>
-      <button onclick="gen()">生成</button>
+    <div class="tabs">
+      <div class="tab active" onclick="switchMode('random', this)">🎲 随机生成</div>
+      <div class="tab" onclick="switchMode('fixed', this)">🔒 关键词固定生成</div>
     </div>
+
+    <!-- 随机模式 -->
+    <div id="randomMode">
+      <div class="toolbar">
+        <label style="font-size:14px;">数量：</label>
+        <select id="count">
+          <option value="1">1 个</option>
+          <option value="5" selected>5 个</option>
+          <option value="10">10 个</option>
+          <option value="20">20 个</option>
+        </select>
+        <label style="font-size:14px;">格式：</label>
+        <select id="format">
+          <option value="dash" selected>带横线</option>
+          <option value="nodash">不带横线</option>
+          <option value="upper">大写</option>
+        </select>
+        <button onclick="gen()">生成</button>
+      </div>
+    </div>
+
+    <!-- 固定模式 -->
+    <div id="fixedMode" style="display:none;">
+      <div class="toolbar">
+        <label style="font-size:14px;">关键词：</label>
+        <input type="text" id="seed" placeholder="输入关键词，比如：用户ID、订单号" oninput="genFixed()">
+      </div>
+    </div>
+
     <div id="list"></div>
+
+    <div class="tip" id="fixedTip" style="display:none;">
+      💡 同样的关键词永远生成同样的 UUID，适合给固定数据做唯一标识。
+    </div>
   </div>
 </div>
 
 <script>
+let mode = 'random';
+
+function switchMode(m, el) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('randomMode').style.display = m === 'random' ? 'block' : 'none';
+  document.getElementById('fixedMode').style.display = m === 'fixed' ? 'block' : 'none';
+  document.getElementById('fixedTip').style.display = m === 'fixed' ? 'block' : 'none';
+  document.getElementById('list').innerHTML = '';
+}
+
+// 简单 hash
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// 基于关键词生成固定 UUID
+function uuidFromSeed(seed) {
+  const hash = hashCode(seed + '元强工具箱UUID');
+  const rand = seededRandom(hash);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.floor(rand() * 16);
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
@@ -68,6 +136,16 @@ function gen() {
     html += `<div class="uuid-item"><span>${u}</span><button onclick="copyUuid('${u}')">复制</button></div>`;
   }
   document.getElementById('list').innerHTML = html;
+}
+
+function genFixed() {
+  const seed = document.getElementById('seed').value.trim();
+  if (!seed) {
+    document.getElementById('list').innerHTML = '';
+    return;
+  }
+  const u = uuidFromSeed(seed);
+  document.getElementById('list').innerHTML = `<div class="uuid-item"><span>${u}</span><button onclick="copyUuid('${u}')">复制</button></div>`;
 }
 
 function copyUuid(u) {
