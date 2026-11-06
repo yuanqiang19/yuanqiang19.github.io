@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UUID 生成器 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .uuid-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #d0d7de; font-family: Consolas, monospace; font-size: 13px; }
+  .uuid-item:last-child { border-bottom: none; }
+  .uuid-item button { padding: 4px 10px; font-size: 12px; background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; cursor: pointer; border-radius: 4px; }
+  .uuid-item button:hover { background: #eaeef2; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  select { padding: 8px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; }
+  button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; background: #2da44e; color: #fff; }
+  button:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>🆔 UUID 生成器</h1>
+
+  <div class="card">
+    <div class="toolbar">
+      <label style="font-size:14px;">生成数量：</label>
+      <select id="count">
+        <option value="1">1 个</option>
+        <option value="5" selected>5 个</option>
+        <option value="10">10 个</option>
+        <option value="20">20 个</option>
+      </select>
+      <label style="font-size:14px;">格式：</label>
+      <select id="format">
+        <option value="dash" selected>带横线（标准）</option>
+        <option value="nodash">不带横线</option>
+        <option value="upper">大写</option>
+      </select>
+      <button onclick="gen()">生成</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function gen() {
+  const count = parseInt(document.getElementById('count').value);
+  const format = document.getElementById('format').value;
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    let u = uuidv4();
+    if (format === 'nodash') u = u.replace(/-/g, '');
+    if (format === 'upper') u = u.toUpperCase();
+    html += `<div class="uuid-item"><span>${u}</span><button onclick="copyUuid('${u}')">复制</button></div>`;
+  }
+  document.getElementById('list').innerHTML = html;
+}
+
+function copyUuid(u) {
+  navigator.clipboard.writeText(u).then(() => alert('已复制'));
+}
+
+gen();
+</script>
+</body>
+</html>
