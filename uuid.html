@@ -38,6 +38,20 @@
       <div class="tab" onclick="switchMode('fixed', this)">🔒 关键词固定生成</div>
     </div>
 
+    <!-- 共用格式选项 -->
+    <div class="toolbar" style="margin-bottom:16px;">
+      <label style="font-size:14px;">横线：</label>
+      <select id="dash" onchange="regen()">
+        <option value="yes" selected>带横线</option>
+        <option value="no">不带横线</option>
+      </select>
+      <label style="font-size:14px;">大小写：</label>
+      <select id="case" onchange="regen()">
+        <option value="lower" selected>小写</option>
+        <option value="upper">大写</option>
+      </select>
+    </div>
+
     <!-- 随机模式 -->
     <div id="randomMode">
       <div class="toolbar">
@@ -47,12 +61,6 @@
           <option value="5" selected>5 个</option>
           <option value="10">10 个</option>
           <option value="20">20 个</option>
-        </select>
-        <label style="font-size:14px;">格式：</label>
-        <select id="format">
-          <option value="dash" selected>带横线</option>
-          <option value="nodash">不带横线</option>
-          <option value="upper">大写</option>
         </select>
         <button onclick="gen()">生成</button>
       </div>
@@ -127,12 +135,13 @@ function uuidFromSeed(seed) {
 
 function gen() {
   const count = parseInt(document.getElementById('count').value);
-  const format = document.getElementById('format').value;
+  const dash = document.getElementById('dash').value;
+  const upper = document.getElementById('case').value === 'upper';
   let html = '';
   for (let i = 0; i < count; i++) {
     let u = uuidv4();
-    if (format === 'nodash') u = u.replace(/-/g, '');
-    if (format === 'upper') u = u.toUpperCase();
+    if (dash === 'no') u = u.replace(/-/g, '');
+    if (upper) u = u.toUpperCase();
     html += `<div class="uuid-item"><span>${u}</span><button onclick="copyUuid('${u}')">复制</button></div>`;
   }
   document.getElementById('list').innerHTML = html;
@@ -144,8 +153,18 @@ function genFixed() {
     document.getElementById('list').innerHTML = '';
     return;
   }
-  const u = uuidFromSeed(seed);
+  const dash = document.getElementById('dash').value;
+  const upper = document.getElementById('case').value === 'upper';
+  let u = uuidFromSeed(seed);
+  if (dash === 'no') u = u.replace(/-/g, '');
+  if (upper) u = u.toUpperCase();
   document.getElementById('list').innerHTML = `<div class="uuid-item"><span>${u}</span><button onclick="copyUuid('${u}')">复制</button></div>`;
+}
+
+// 切换格式时自动重新生成
+function regen() {
+  if (mode === 'fixed') genFixed();
+  else gen();
 }
 
 function copyUuid(u) {
