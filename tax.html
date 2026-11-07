@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个税计算器 - 元强工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
+  .container { max-width: 600px; margin: 0 auto; }
+  .topbar { margin-bottom: 20px; }
+  .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .row { margin-bottom: 12px; }
+  .row label { display: block; font-size: 13px; color: #57606a; margin-bottom: 4px; }
+  .row input { width: 100%; padding: 8px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; }
+  button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; background: #2da44e; color: #fff; width: 100%; margin-top: 10px; }
+  button:hover { opacity: 0.9; }
+  .result { background: #f6f8fa; padding: 16px; border-radius: 8px; margin-top: 16px; }
+  .result-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .result-row.highlight { font-size: 18px; font-weight: 600; color: #2da44e; border-top: 1px solid #d0d7de; margin-top: 8px; padding-top: 12px; }
+  .presets { margin-top: 12px; font-size: 12px; color: #57606a; }
+  .presets button { width: auto; padding: 4px 10px; font-size: 12px; background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; margin: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
+  <h1>💰 个税计算器</h1>
+
+  <div class="card">
+    <div class="row">
+      <label>税前月薪（元）</label>
+      <input type="number" id="salary" placeholder="比如：10000" value="10000">
+    </div>
+    <div class="row">
+      <label>五险一金个人部分（元/月）</label>
+      <input type="number" id="social" placeholder="比如：1500" value="1500">
+    </div>
+    <div class="row">
+      <label>专项附加扣除（元/月）</label>
+      <input type="number" id="special" placeholder="比如：1000（租房/房贷/赡养老人等）" value="0">
+    </div>
+    <div class="row">
+      <label>起征点（元/月）</label>
+      <input type="number" id="threshold" value="5000">
+    </div>
+
+    <button onclick="calc()">计算</button>
+
+    <div class="presets">
+      快速填入：
+      <button onclick="fill(5000, 500, 0)">月薪5千</button>
+      <button onclick="fill(10000, 1500, 1000)">月薪1万</button>
+      <button onclick="fill(20000, 3000, 2000)">月薪2万</button>
+      <button onclick="fill(50000, 7500, 3000)">月薪5万</button>
+    </div>
+
+    <div class="result" id="result" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+function fill(s, soc, sp) {
+  document.getElementById('salary').value = s;
+  document.getElementById('social').value = soc;
+  document.getElementById('special').value = sp;
+  calc();
+}
+
+function calc() {
+  const salary = parseFloat(document.getElementById('salary').value) || 0;
+  const social = parseFloat(document.getElementById('social').value) || 0;
+  const special = parseFloat(document.getElementById('special').value) || 0;
+  const threshold = parseFloat(document.getElementById('threshold').value) || 5000;
+
+  // 应纳税所得额
+  const taxable = Math.max(0, salary - social - special - threshold);
+
+  // 税率表（按月）
+  let rate = 0, quickDeduct = 0;
+  if (taxable <= 3000) { rate = 0.03; quickDeduct = 0; }
+  else if (taxable <= 12000) { rate = 0.10; quickDeduct = 210; }
+  else if (taxable <= 25000) { rate = 0.20; quickDeduct = 1410; }
+  else if (taxable <= 35000) { rate = 0.25; quickDeduct = 2660; }
+  else if (taxable <= 55000) { rate = 0.30; quickDeduct = 4410; }
+  else if (taxable <= 80000) { rate = 0.35; quickDeduct = 7160; }
+  else { rate = 0.45; quickDeduct = 15160; }
+
+  const tax = taxable * rate - quickDeduct;
+  const afterTax = salary - social - tax;
+
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').innerHTML = `
+    <div class="result-row"><span>税前工资</span><span>¥ ${salary.toFixed(2)}</span></div>
+    <div class="result-row"><span>五险一金</span><span>- ¥ ${social.toFixed(2)}</span></div>
+    <div class="result-row"><span>专项附加扣除</span><span>- ¥ ${special.toFixed(2)}</span></div>
+    <div class="result-row"><span>应纳税所得额</span><span>¥ ${taxable.toFixed(2)}</span></div>
+    <div class="result-row"><span>适用税率</span><span>${(rate*100).toFixed(0)}% （速算扣除数 ${quickDeduct}）</span></div>
+    <div class="result-row"><span>个人所得税</span><span style="color:#cf222e">- ¥ ${tax.toFixed(2)}</span></div>
+    <div class="result-row highlight"><span>税后到手</span><span>¥ ${afterTax.toFixed(2)}</span></div>
+  `;
+}
+
+calc();
+</script>
+</body>
+</html>
