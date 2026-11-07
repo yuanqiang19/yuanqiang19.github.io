@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>颜色转换 - 元强工具箱</title>
+<title>颜色取色器 - 元强工具箱</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 20px; min-height: 100vh; }
@@ -12,58 +12,148 @@
   .topbar a { color: #0969da; text-decoration: none; font-size: 14px; }
   h1 { font-size: 22px; margin-bottom: 20px; }
   .card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-  .color-preview { width: 100%; height: 100px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #d0d7de; }
+
+  /* 大色板 */
+  .saturation-box {
+    width: 100%;
+    height: 200px;
+    border-radius: 8px;
+    position: relative;
+    cursor: crosshair;
+    margin-bottom: 16px;
+    background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(134, 100%, 50%));
+  }
+  .saturation-cursor {
+    position: absolute;
+    width: 16px; height: 16px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(0,0,0,0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  /* 色相滑块 */
+  .hue-slider {
+    width: 100%;
+    height: 20px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+    position: relative;
+    cursor: pointer;
+  }
+  .hue-cursor {
+    position: absolute;
+    width: 4px;
+    height: 26px;
+    background: #fff;
+    border: 2px solid #333;
+    border-radius: 2px;
+    top: -3px;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  /* 预览 */
+  .preview-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .preview-current { flex: 1; height: 60px; border-radius: 8px; border: 2px solid #0969da; }
+
+  /* 输入框 */
   .row { margin-bottom: 12px; }
   .row label { display: block; font-size: 13px; color: #57606a; margin-bottom: 4px; }
   .row input { width: 100%; padding: 8px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; font-family: Consolas, monospace; }
-  .output-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d0d7de; font-size: 14px; }
-  .output-row:last-child { border-bottom: none; }
-  .output-row .val { font-family: Consolas, monospace; cursor: pointer; }
-  .output-row .val:hover { color: #0969da; }
+
+  /* 色板 */
+  .palette { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+  .palette div {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .palette div.active { border-color: #0969da; box-shadow: 0 0 0 2px #0969da; }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="topbar"><a href="index.html">← 返回工具箱</a></div>
-  <h1>🎨 颜色转换</h1>
+  <h1>🎨 颜色取色器</h1>
 
   <div class="card">
-    <div class="color-preview" id="preview" style="background: #2da44e;"></div>
-
-    <div class="row">
-      <label>Hex 颜色（输入任意一个自动转换）</label>
-      <input type="text" id="hex" value="#2da44e" oninput="convert()">
+    <!-- 大色板（饱和度+明度） -->
+    <div class="saturation-box" id="satBox">
+      <div class="saturation-cursor" id="satCursor"></div>
     </div>
 
+    <!-- 色相滑块 -->
+    <div class="hue-slider" id="hueSlider">
+      <div class="hue-cursor" id="hueCursor"></div>
+    </div>
+
+    <!-- 预览 -->
+    <div class="preview-row">
+      <div class="preview-current" id="preview"></div>
+    </div>
+
+    <!-- 数值输入 -->
+    <div class="row">
+      <label>Hex 颜色</label>
+      <input type="text" id="hex" oninput="fromHex()">
+    </div>
     <div class="row">
       <label>RGB</label>
-      <input type="text" id="rgb" value="45, 164, 78" oninput="convert()">
+      <input type="text" id="rgb" oninput="fromRgb()">
     </div>
-
     <div class="row">
       <label>HSL</label>
-      <input type="text" id="hsl" value="134, 56%, 41%" oninput="convert()">
+      <input type="text" id="hsl" oninput="fromHsl()">
     </div>
   </div>
 
   <div class="card">
-    <h2 style="font-size:14px;color:#57606a;margin-bottom:12px;">常用颜色</h2>
-    <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:8px;" id="preset"></div>
+    <h2 style="font-size:14px;color:#57606a;margin-bottom:12px;">常用颜色（点一下选中）</h2>
+    <div class="palette" id="palette"></div>
   </div>
 </div>
 
 <script>
-const presets = ['#FF0000','#FF7F00','#FFFF00','#00FF00','#0000FF','#4B0082','#9400D3','#000000',
-                 '#FFFFFF','#C0C0C0','#808080','#800000','#808000','#008000','#008080','#000080'];
+let h = 134, s = 70, l = 41; // 当前颜色
 
-function hexToRgb(hex) {
-  hex = hex.replace('#', '');
-  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-  return {
-    r: parseInt(hex.substring(0, 2), 16),
-    g: parseInt(hex.substring(2, 4), 16),
-    b: parseInt(hex.substring(4, 6), 16)
-  };
+const presets = [
+  '#FF0000','#FF4500','#FF8C00','#FFD700','#FFFF00','#7CFC00','#00FF00','#00FA9A',
+  '#00FFFF','#00BFFF','#1E90FF','#0000FF','#4B0082','#8A2BE2','#FF00FF','#FF1493',
+  '#FFFFFF','#C0C0C0','#808080','#404040','#000000','#8B0000','#FF6347','#FFA07A',
+  '#90EE90','#3CB371','#2E8B57','#006400','#48D1CC','#20B2AA','#4682B4','#4169E1',
+  '#6A5ACD','#7B68EE','#9370DB','#BA55D3','#DA70D6','#EE82EE','#DDA0DD','#D8BFD8',
+  '#F0E68C','#BDB76B','#CD853F','#DEB887','#F4A460','#D2691E','#A0522D','#8B4513'
+];
+
+// 初始化色板
+document.getElementById('palette').innerHTML = presets.map(c =>
+  `<div onclick="setFromPreset('${c}')" data-color="${c}" style="background:${c}"></div>`
+).join('');
+
+function hslToRgb(h, s, l) {
+  h /= 360; s /= 100; l /= 100;
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
 
 function rgbToHex(r, g, b) {
@@ -88,85 +178,110 @@ function rgbToHsl(r, g, b) {
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
-function hslToRgb(h, s, l) {
-  h /= 360; s /= 100; l /= 100;
-  let r, g, b;
-  if (s === 0) { r = g = b = l; }
-  else {
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
-  }
-  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
-}
+function updateUI() {
+  const rgb = hslToRgb(h, s, l);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
 
-function convert() {
-  const hexEl = document.getElementById('hex');
-  const rgbEl = document.getElementById('rgb');
-  const hslEl = document.getElementById('hsl');
-  const preview = document.getElementById('preview');
-
-  let hex, rgb, hsl;
-
-  // 从 Hex 输入
-  if (document.activeElement === hexEl) {
-    hex = hexEl.value.trim();
-    if (!hex.startsWith('#')) hex = '#' + hex;
-    if (/^#[0-9A-Fa-f]{3,6}$/.test(hex)) {
-      rgb = hexToRgb(hex);
-      hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-      rgbEl.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-      hslEl.value = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
-      preview.style.background = hex;
-    }
-  }
-  // 从 RGB 输入
-  else if (document.activeElement === rgbEl) {
-    const parts = rgbEl.value.split(/[,，\s]+/).map(Number);
-    if (parts.length === 3 && parts.every(p => p >= 0 && p <= 255)) {
-      rgb = { r: parts[0], g: parts[1], b: parts[2] };
-      hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-      hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-      hexEl.value = hex;
-      hslEl.value = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
-      preview.style.background = hex;
-    }
-  }
-  // 从 HSL 输入
-  else if (document.activeElement === hslEl) {
-    const parts = hslEl.value.split(/[,，\s]+/);
-    const h = parseInt(parts[0]);
-    const s = parseInt(parts[1]);
-    const l = parseInt(parts[2]);
-    if (!isNaN(h) && !isNaN(s) && !isNaN(l)) {
-      rgb = hslToRgb(h, s, l);
-      hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-      hexEl.value = hex;
-      rgbEl.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-      preview.style.background = hex;
-    }
-  }
-}
-
-// 渲染预设颜色
-document.getElementById('preset').innerHTML = presets.map(c =>
-  `<div onclick="setColor('${c}')" style="width:100%;aspect-ratio:1;border-radius:4px;background:${c};cursor:pointer;" title="${c}"></div>`
-).join('');
-
-function setColor(hex) {
+  document.getElementById('preview').style.background = hex;
   document.getElementById('hex').value = hex;
-  convert();
+  document.getElementById('rgb').value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+  document.getElementById('hsl').value = `${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%`;
+
+  // 大色板背景
+  document.getElementById('satBox').style.background =
+    `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${h}, 100%, 50%))`;
+
+  // 大色板上的光标位置
+  document.getElementById('satCursor').style.left = s + '%';
+  document.getElementById('satCursor').style.top = (100 - l) + '%';
+  document.getElementById('satCursor').style.background = hex;
+
+  // 色相滑块光标
+  document.getElementById('hueCursor').style.left = (h / 360 * 100) + '%';
+
+  // 高亮色板里的当前颜色
+  document.querySelectorAll('.palette div').forEach(d => {
+    d.classList.toggle('active', d.dataset.color.toLowerCase() === hex);
+  });
 }
+
+// 大色板拖动
+const satBox = document.getElementById('satBox');
+let satDragging = false;
+
+satBox.addEventListener('mousedown', e => { satDragging = true; updateSat(e); });
+document.addEventListener('mousemove', e => { if (satDragging) updateSat(e); });
+document.addEventListener('mouseup', () => satDragging = false);
+
+function updateSat(e) {
+  const rect = satBox.getBoundingClientRect();
+  s = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+  l = Math.max(0, Math.min(100, 100 - (e.clientY - rect.top) / rect.height * 100));
+  updateUI();
+}
+
+// 色相滑块拖动
+const hueSlider = document.getElementById('hueSlider');
+let hueDragging = false;
+
+hueSlider.addEventListener('mousedown', e => { hueDragging = true; updateHue(e); });
+document.addEventListener('mousemove', e => { if (hueDragging) updateHue(e); });
+document.addEventListener('mouseup', () => hueDragging = false);
+
+function updateHue(e) {
+  const rect = hueSlider.getBoundingClientRect();
+  h = Math.max(0, Math.min(360, (e.clientX - rect.left) / rect.width * 360));
+  updateUI();
+}
+
+// 从输入框更新
+function fromHex() {
+  let hex = document.getElementById('hex').value.trim();
+  if (!hex.startsWith('#')) hex = '#' + hex;
+  if (/^#[0-9A-Fa-f]{3,6}$/.test(hex)) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    const hslObj = rgbToHsl(r, g, b);
+    h = hslObj.h; s = hslObj.s; l = hslObj.l;
+    updateUI();
+  }
+}
+
+function fromRgb() {
+  const parts = document.getElementById('rgb').value.split(/[,，\s]+/).map(Number);
+  if (parts.length === 3 && parts.every(p => p >= 0 && p <= 255)) {
+    const hslObj = rgbToHsl(parts[0], parts[1], parts[2]);
+    h = hslObj.h; s = hslObj.s; l = hslObj.l;
+    updateUI();
+  }
+}
+
+function fromHsl() {
+  const parts = document.getElementById('hsl').value.split(/[,，\s]+/);
+  const h2 = parseInt(parts[0]);
+  const s2 = parseInt(parts[1]);
+  const l2 = parseInt(parts[2]);
+  if (!isNaN(h2) && !isNaN(s2) && !isNaN(l2)) {
+    h = h2; s = s2; l = l2;
+    updateUI();
+  }
+}
+
+function setFromPreset(hex) {
+  hex = hex.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const hslObj = rgbToHsl(r, g, b);
+  h = hslObj.h; s = hslObj.s; l = hslObj.l;
+  updateUI();
+}
+
+// 初始化
+updateUI();
 </script>
 </body>
 </html>
